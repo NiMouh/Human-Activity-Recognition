@@ -44,7 +44,9 @@ def create_instance(data, id, activity):
     for row in data:
         if row[0] == id and row[1] == activity:
             # Only the x, y and z values are relevant
-            instance.append([float(row[3]), float(row[4]), float(row[5])])
+            instance.append(float(row[3]))
+            instance.append(float(row[4]))
+            instance.append(float(row[5]))
             if len(instance) == number_of_samples:
                 break
 
