@@ -21,16 +21,16 @@ def read_csv(file_name):
     reader = csv.reader(open(file_name, 'r'))
 
     # Initial data structure
-    data = []
+    raw_data = []
 
     # Discard the first line
     next(reader)
 
     # For each row
     for row in reader:
-        data.append(row)
+        raw_data.append(row)
 
-    return data
+    return raw_data
 
 
 # Every line received have the following formate: "ID,Activity, timestamp, x, y, z"
@@ -64,7 +64,22 @@ def create_instance(data, id, activity):
 
 # Function that receives the data and returns a list of instances
 def create_instances(data):
-    ## Pre-processing
+    # Declaration of the variable that represents the instances
+    instances = []
+
+    # Cicle through all the ids
+    for ID in range(1, 40):
+        # Cicle through all the activities
+        for activity in labels:
+            # Create an instance
+            instance = create_instance(data, str(ID), activity)
+
+            # If the instance is not empty, add it to the instances list
+            if len(instance) > 0:
+                instances.append(instance)
+
+    # Return the instances
+    return instances
 
 
 # Main function
@@ -75,10 +90,9 @@ if __name__ == '__main__':
     # Print data
     print(data)
 
-    # Create the instance to the ID 36 and the activity "Jogging" (Label 1)
-    teste = labels['Jogging']
-
-    instance = create_instance(data, '36', 'Downstairs')
+    # Create the instances
+    instances = create_instances(data)
 
     # Print the instance
-    print(instance)
+    print("#### INSTANCES ####")
+    print(instances)
