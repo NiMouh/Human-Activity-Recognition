@@ -1,6 +1,7 @@
 # Pratical Project 2: Human Activity Recognition
 # Imports
 import csv
+import random
 
 # Declaration of the variable that represents the number of the samples
 number_of_samples = 20  # Hz
@@ -14,6 +15,8 @@ labels = {
     'Upstairs': 4,
     'Walking': 5
 }
+
+instances = []
 
 
 # Function that receives the name of the csv file and returns a list of instances
@@ -33,53 +36,70 @@ def read_csv(file_name):
     return raw_data
 
 
+# Function that receives the data and write it to a csv file
+def write_csv(data, file_name):
+    with open(file_name, 'w') as csv_file:
+        writer = csv.writer(csv_file)
+        writer.writerows(data)
+
+
 # Every line received have the following formate: "ID,Activity, timestamp, x, y, z"
 # This function will create an instance with 20 samples of the same activity and same ID
-def create_instance(data, id, activity):
-    # Initial data structure
-    instance = []
-
-    # Insert the id in the instance
-    instance.append(int(id))
-
-    # Insert the activity in the instance
-    instance.append(labels[activity])
-
-    # Declaration of the variable that represents the number of the samples
-    samples = 20 * 3  # 20 samples of 3 axis
-
+def create_instances(raw_data):
     # Run through the data, if you find a line with the same ID and activity, add it to the instance.
     # Repeat the process until you got 'number_of_samples' samples
-    for row in data:
-        if row[0] == id and row[1] == activity:
-            # Only the x, y and z values are relevant
-            instance.append(float(row[3]))
-            instance.append(float(row[4]))
-            instance.append(float(row[5]))
-            if len(instance) == samples + 2:  # +2 because of the id and activity
-                break
+    for i in range(len(raw_data)):
 
-    return instance
+        if i + number_of_samples > len(raw_data):
+            break
 
+        if raw_data[i][0] == raw_data[i + number_of_samples - 1][0] and raw_data[i][1] == \
+                raw_data[i + number_of_samples - 1][1]:
 
-# Function that receives the data and returns a list of instances
-def create_instances(data):
-    # Declaration of the variable that represents the instances
-    instances = []
+            # Initial data structure
+            instance = [raw_data[i][0], labels[raw_data[i][1]]]
 
-    # Cicle through all the ids
-    for ID in range(1, 40):
-        # Cicle through all the activities
-        for activity in labels:
-            # Create an instance
-            instance = create_instance(data, str(ID), activity)
+            # Insert the id and activity
+            for j in range(i, i + number_of_samples):
+                # Append the last 3 values of the line to the instance (as float)
+                instance.append(float(raw_data[j][3]))
+                instance.append(float(raw_data[j][4]))
+                instance.append(float(raw_data[j][5]))
 
-            # If the instance is not empty, add it to the instances list
-            if len(instance) > 0:
-                instances.append(instance)
+            # Append the instance to the list of instances
+            instances.append(instance)
+            print("Instance created: " + str(len(instances)))
 
-    # Return the instances
     return instances
+
+
+# Function that makes K fold cross validation
+def create_k_fold_validation(instances, k):
+    # Declaration of the highest id
+    highest_id = 36
+
+    # Of the 36 IDs choose k IDs to be the training set
+    training_set_ids = []
+
+    if k < highest_id:
+        for i in range(k):
+            # Choose a random ID
+            training_set_ids.append(random.randint(1, highest_id))
+
+
+# Function K fold cross validation
+
+# Shuffle the dataset randomly.
+
+# Split the dataset into k groups
+
+# For each unique group:
+# Take the group as a hold out or test data set
+# Take the remaining groups as a training data set
+# Fit a model on the training set and evaluate it on the test set
+# Retain the evaluation score and discard the model
+
+# Summarize the skill of the model using the sample of model evaluation scores
 
 
 # Main function
@@ -87,12 +107,8 @@ if __name__ == '__main__':
     # Read the csv file
     data = read_csv('time_series_data_human_activities.csv')
 
-    # Print data
-    print(data)
-
     # Create the instances
     instances = create_instances(data)
 
-    # Print the instance
-    print("#### INSTANCES ####")
-    print(instances)
+    # Send the instances to a csv file
+    write_csv(instances, 'instances.csv')
