@@ -16,6 +16,7 @@ labels = {
     'Walking': 5
 }
 
+# Declaration of the list of instances
 instances = []
 
 
@@ -50,9 +51,11 @@ def create_instances(raw_data):
     # Repeat the process until you got 'number_of_samples' samples
     for i in range(len(raw_data)):
 
+        # If the index plus the number of samples overlaps the length of the raw_data, break the loop
         if i + number_of_samples > len(raw_data):
             break
 
+        # If the next 'number_of_samples' lines have the same ID and activity, add them to the instance
         if raw_data[i][0] == raw_data[i + number_of_samples - 1][0] and raw_data[i][1] == \
                 raw_data[i + number_of_samples - 1][1]:
 
@@ -74,32 +77,29 @@ def create_instances(raw_data):
 
 
 # Function that makes K fold cross validation
-def create_k_fold_validation(instances, k):
-    # Declaration of the highest id
-    highest_id = 36
+def create_k_fold_validation(k):
+    # Declaration of auxiliary variable
+    k_fold_validation = []
 
-    # Of the 36 IDs choose k IDs to be the training set
-    training_set_ids = []
+    # Divide the instances in k groups and save them in k_fold_validation (this list will have k lists)
+    for i in range(k):
+        k_fold_validation.append(instances[i::k])
 
-    if k < highest_id:
-        for i in range(k):
-            # Choose a random ID
-            training_set_ids.append(random.randint(1, highest_id))
+    # For each group
+    for i in range(k):
+        # Create an aux with the k_fold_validation elements (Training set)
+        training_group = k_fold_validation.copy()
+        # Create a variable to save the Test set
+        test_group = []
 
+        # Choose 2 random instances from the group, add them to the fold_test and remove them from the group (pop)
+        for j in range(2):
+            random_index = random.randint(0, len(training_group) - 1)
+            test_group.append(training_group.pop(random_index))
 
-# Function K fold cross validation
-
-# Shuffle the dataset randomly.
-
-# Split the dataset into k groups
-
-# For each unique group:
-# Take the group as a hold out or test data set
-# Take the remaining groups as a training data set
-# Fit a model on the training set and evaluate it on the test set
-# Retain the evaluation score and discard the model
-
-# Summarize the skill of the model using the sample of model evaluation scores
+        # Finally save them in a csv file (separatly)
+        write_csv(test_group, 'fold_test_' + str(i) + '.csv')
+        write_csv(training_group, 'fold_train_' + str(i) + '.csv')
 
 
 # Main function
@@ -111,4 +111,8 @@ if __name__ == '__main__':
     instances = create_instances(data)
 
     # Send the instances to a csv file
-    write_csv(instances, 'instances.csv')
+    # write_csv(instances, 'instances.csv')
+
+    # Create the K fold cross validation (k = 10)
+    create_k_fold_validation(10)
+
