@@ -1,6 +1,7 @@
 # Pratical Project 2: Human Activity Recognition
 # Imports
 import csv
+import math
 import random
 
 # Declaration of the variable that represents the number of the samples
@@ -71,48 +72,174 @@ def create_instances(raw_data):
 
             # Append the instance to the list of instances
             instances.append(instance)
-            print("Instance created: " + str(len(instances)))
+            print("Instances created: " + str(len(instances)))
 
     return instances
 
 
 # Function that makes K fold cross validation
 def create_k_fold_validation(k):
-    # Declaration of auxiliary variable
-    k_fold_validation = []
+    # Declaration of the variable for the folds
+    folds = []
 
-    # Divide the instances in k groups and save them in k_fold_validation (this list will have k lists)
+    # Declaration of auxiliary variable for the instances
+    aux_instances = instances
+
+    # Declaration of the ID's not taken (36 ID's initially)
+    not_taken_IDs = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27,
+                     28, 29, 30, 31, 32, 33, 34, 35, 36]
+
+    IDs_per_fold = int(len(not_taken_IDs) / k)
+
+    # 1000 instances / 10 folds = 100 instances per fold
+    # 36 ID's / 10 folds = 3.6 ID's per fold
+
+    # For each fold
     for i in range(k):
-        k_fold_validation.append(instances[i::k])
+        # Declaration of the fold
+        fold = []
 
-    # For each group
+        # Take 3 IDs that are not taken
+        for j in range(IDs_per_fold):
+            # Randomly pick an ID
+            ID = random.choice(not_taken_IDs)
+            # Feedback for the folds and Choosen ID
+            print("Fold: " + str(i) + " Tem este ID: " + str(ID))
+            # for each instance
+            for instance in aux_instances:
+                # If the ID is the same as the instance ID
+                if ID == int(instance[0]):
+                    # Append the instance to the fold
+                    fold.append(instance)
+            # Feedback to the removed ID from the list
+            print("Este ID: " + str(ID) + " foi removido da lista de IDs")
+            # Remove the ID from the list of not taken IDs
+            not_taken_IDs.remove(ID)
+
+        # Append the fold to the list of folds
+        folds.append(fold)
+
+    # Print how many IDs are left
+    print("IDs left: " + str(len(not_taken_IDs)))
+
+    # For each ID that is not taken
+    for ID in not_taken_IDs:
+        # Feedback for the ID
+        print("Este ID: " + str(ID) + " não foi escolhido para nenhum fold.")
+
+        # Declaration of a variable for the fold with the least instances
+        fold_with_least_instances = 0
+
+        # Declaration of a variable that saves the lenght of the first fold
+        length_of_fold_with_least_instances = len(folds[0])
+
+        # For each fold retrieve the fold with the least instances
+        for i in range(len(folds)):
+            if len(folds[i]) < length_of_fold_with_least_instances:
+                length_of_fold_with_least_instances = len(folds[i])
+                fold_with_least_instances = i
+
+        # For that fold, add the instances with the ID that is not taken
+        for instance in aux_instances:
+            if ID == int(instance[0]):
+                folds[fold_with_least_instances].append(instance)
+
+    # For each iteration
     for i in range(k):
-        # Create an aux with the k_fold_validation elements (Training set)
-        training_group = k_fold_validation.copy()
-        # Create a variable to save the Test set
-        test_group = []
+        foldsCopy = folds.copy()
 
-        # Choose 2 random instances from the group, add them to the fold_test and remove them from the group (pop)
-        for j in range(2):
-            random_index = random.randint(0, len(training_group) - 1)
-            test_group.append(training_group.pop(random_index))
+        # Choose one fold as the test fold
+        print("fold de teste: " + str(i))
+        test_set = foldsCopy[i]
+
+        # The rest of the folds are the training set, so we concatenate them
+        training_set = []
+        for j in range(k):
+            if j != i:
+                for instance in foldsCopy[j]:
+                    print("Adicionando uma instancia ao training set")
+                    training_set.append(instance)
+
+        # Declaration of the variable that will save the min and max values of the training set
+        min = [math.inf, math.inf, math.inf]
+        max = [-math.inf, -math.inf, -math.inf]
+
+        # Determine the min and max of the training set
+        for instance in training_set:
+            for index in range(2, len(instance), 3):
+
+                # Calculate the min and max of the x axis
+                if float(instance[index]) < min[0]:
+                    min[0] = float(instance[index])
+                if float(instance[index]) > max[0]:
+                    max[0] = float(instance[index])
+
+                # Calculate the min and max of the y axis
+                if float(instance[index + 1]) < min[1]:
+                    min[1] = float(instance[index + 1])
+                if float(instance[index + 1]) > max[1]:
+                    max[1] = float(instance[index + 1])
+
+                # Calculate the min and max of the z axis
+                if float(instance[index + 2]) < min[2]:
+                    min[2] = float(instance[index + 2])
+                if float(instance[index + 2]) > max[2]:
+                    max[2] = float(instance[index + 2])
+        # Feedback for the min and max values
+        print("Min: " + str(min))
+        print("Max: " + str(max))
+
+        # Normalize the training set
+        for instance in training_set:
+            print("Normalizando o training set")
+            for index in range(2, len(instance), 3):
+                # If max and min are the same, the value will be 0
+                if max[0] - min[0] == 0 or max[1] - min[1] == 0 or max[2] - min[2] == 0:
+                    # Remove the value from the instance
+                    instance.pop(index)
+                    instance.pop(index + 1)
+                    instance.pop(index + 2)
+                else:
+                    instance[index] = str((float(instance[index]) - min[0]) / (max[0] - min[0]))
+                    instance[index + 1] = str((float(instance[index + 1]) - min[1]) / (max[1] - min[1]))
+                    instance[index + 2] = str((float(instance[index + 2]) - min[2]) / (max[2] - min[2]))
+        print("Training set normalizado")
+        # Normalize the test set
+        for instance in test_set:
+            print("Normalizando o test set")
+            for index in range(2, len(instance), 3):
+                # If max and min are the same, the value will be 0
+                if max[0] - min[0] == 0 or max[1] - min[1] == 0 or max[2] - min[2] == 0:
+                    # Remove the value from the instance
+                    instance.pop(index)
+                    instance.pop(index + 1)
+                    instance.pop(index + 2)
+                else:
+                    instance[index] = str((float(instance[index]) - min[0]) / (max[0] - min[0]))
+                    instance[index + 1] = str((float(instance[index + 1]) - min[1]) / (max[1] - min[1]))
+                    instance[index + 2] = str((float(instance[index + 2]) - min[2]) / (max[2] - min[2]))
+        print("Test set normalizado")
 
         # Finally save them in a csv file (separatly)
-        write_csv(test_group, 'fold_test_' + str(i) + '.csv')
-        write_csv(training_group, 'fold_train_' + str(i) + '.csv')
+        write_csv(test_set, 'fold_test_' + str(i) + '.csv')
+
+        # Write the training set in a csv file
+        write_csv(training_set, 'fold_train_' + str(i) + '.csv')
 
 
 # Main function
 if __name__ == '__main__':
     # Read the csv file
-    data = read_csv('time_series_data_human_activities.csv')
+    # data = read_csv('time_series_data_human_activities.csv')
 
-    # Create the instances
-    instances = create_instances(data)
+    # Create the instances from the raw data
+    # instances = create_instances(data)
 
     # Send the instances to a csv file
     # write_csv(instances, 'instances.csv')
 
+    # Read the instances from the csv file
+    instances = read_csv('instances.csv')
+
     # Create the K fold cross validation (k = 10)
     create_k_fold_validation(10)
-
