@@ -45,8 +45,10 @@ def write_csv(data, file_name):
         writer.writerows(data)
 
 
+
+# Function "create_instance", it will create an instance with 20 samples of the same activity and same ID
 # Every line received have the following formate: "ID,Activity, timestamp, x, y, z"
-# This function will create an instance with 20 samples of the same activity and same ID
+# Receives a list of lines and returns a list of instances
 def create_instances(raw_data):
     # Run through the data, if you find a line with the same ID and activity, add it to the instance.
     # Repeat the process until you got 'number_of_samples' samples
@@ -78,6 +80,8 @@ def create_instances(raw_data):
 
 
 # Function that makes K fold cross validation
+# It will create 'k' folds, normalize them and write them to a csv file
+# Receives the 'k' value that represents the number of folds, and returns 'k' * 2 files with the training and test data
 def create_k_fold_validation(k):
     # Declaration of the variable for the folds
     folds = []
@@ -89,12 +93,10 @@ def create_k_fold_validation(k):
     not_taken_IDs = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27,
                      28, 29, 30, 31, 32, 33, 34, 35, 36]
 
+    # Declaration of the variable that represents the number of instances per fold
     IDs_per_fold = int(len(not_taken_IDs) / k)
 
-    # 1000 instances / 10 folds = 100 instances per fold
-    # 36 ID's / 10 folds = 3.6 ID's per fold
-
-    # For each fold
+    # For each fold, assign 'IDs_per_fold' ID's to it and append every instance with that ID to the fold
     for i in range(k):
         # Declaration of the fold
         fold = []
@@ -122,7 +124,7 @@ def create_k_fold_validation(k):
     # Print how many IDs are left
     print("IDs left: " + str(len(not_taken_IDs)))
 
-    # For each ID that is not taken
+    # For each ID that is not taken, assign it to the fold with the least instances (to balance the folds)
     for ID in not_taken_IDs:
         # Feedback for the ID
         print("Este ID: " + str(ID) + " não foi escolhido para nenhum fold.")
@@ -144,11 +146,12 @@ def create_k_fold_validation(k):
             if ID == int(instance[0]):
                 folds[fold_with_least_instances].append(instance)
 
-    # For each iteration
+    # For each iteration, create 'k' training and test sets (every fold will be a test set once)
     for i in range(k):
+        # Declaration of the variable that represents a copy of the list of folds
         foldsCopy = folds.copy()
 
-        # Choose one fold as the test fold
+        # Declaration of the variable that represents the current test set fold
         print("fold de teste: " + str(i))
         test_set = foldsCopy[i]
 
@@ -200,10 +203,12 @@ def create_k_fold_validation(k):
                     instance.pop(index + 1)
                     instance.pop(index + 2)
                 else:
+                    # Normalize all the axis
                     instance[index] = str((float(instance[index]) - min[0]) / (max[0] - min[0]))
                     instance[index + 1] = str((float(instance[index + 1]) - min[1]) / (max[1] - min[1]))
                     instance[index + 2] = str((float(instance[index + 2]) - min[2]) / (max[2] - min[2]))
         print("Training set normalizado")
+
         # Normalize the test set
         for instance in test_set:
             print("Normalizando o test set")
@@ -215,12 +220,13 @@ def create_k_fold_validation(k):
                     instance.pop(index + 1)
                     instance.pop(index + 2)
                 else:
+                    # Normalize all the axis
                     instance[index] = str((float(instance[index]) - min[0]) / (max[0] - min[0]))
                     instance[index + 1] = str((float(instance[index + 1]) - min[1]) / (max[1] - min[1]))
                     instance[index + 2] = str((float(instance[index + 2]) - min[2]) / (max[2] - min[2]))
         print("Test set normalizado")
 
-        # Finally save them in a csv file (separatly)
+        # Write the test set to a file
         write_csv(test_set, 'fold_test_' + str(i) + '.csv')
 
         # Write the training set in a csv file
