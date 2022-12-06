@@ -3,6 +3,9 @@
 import csv
 import math
 import random
+from sklearn.neural_network import MLPClassifier
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import LabelEncoder
 
 # Declaration of the variable that represents the number of the samples
 numberOfSamples = 20 # Hz
@@ -64,7 +67,7 @@ def create_instances(rawData):
                 rawData[rowIndex + numberOfSamples - 1][1]:
 
             # Initial data structure
-            currentInstance = [rawData[rowIndex][0], int(activityLabels[rawData[rowIndex][1]])]
+            currentInstance = []
 
             # Insert the id and activity
             for j in range(rowIndex, rowIndex + numberOfSamples):
@@ -72,6 +75,10 @@ def create_instances(rawData):
                 currentInstance.append(float(rawData[j][3]))
                 currentInstance.append(float(rawData[j][4]))
                 currentInstance.append(float(rawData[j][5]))
+
+            # Append the ID and the activity label to the instance
+            currentInstance.append(rawData[rowIndex][0])
+            currentInstance.append(int(activityLabels[rawData[rowIndex][1]]))
 
             # Append the instance to the list of instances
             instances.append(currentInstance)
@@ -99,7 +106,7 @@ def create_k_fold_validation(k):
     # For each fold, assign 'IDs_per_fold' ID's to it and append every instance with that ID to the fold
     for i in range(k):
         # Declaration of the fold
-        currentFold = []
+        OnGoingFold = []
 
         # Take 3 IDs that are not taken
         for j in range(idsPerFold):
@@ -112,14 +119,14 @@ def create_k_fold_validation(k):
                 # If the ID is the same as the instance ID
                 if ID == int(instance[0]):
                     # Append the instance to the fold
-                    currentFold.append(instance)
+                    OnGoingFold.append(instance)
             # Feedback to the removed ID from the list
             print("Este ID: " + str(ID) + " foi removido da lista de IDs")
             # Remove the ID from the list of not taken IDs
             idsNotTaken.remove(ID)
 
         # Append the fold to the list of folds
-        folds.append(currentFold)
+        folds.append(OnGoingFold)
 
     # Print how many IDs are left
     print("IDs left: " + str(len(idsNotTaken)))
@@ -147,18 +154,20 @@ def create_k_fold_validation(k):
                 folds[leastIstancesFold].append(instance)
 
     # For each iteration, create 'k' training and test sets (every fold will be a test set once)
-    for currentFold in range(k):
+    for indexFold in range(k):
         # Declaration of the variable that represents a copy of the list of folds
         foldsCopy = folds.copy()
 
         # Declaration of the variable that represents the current test set fold
-        print("fold de teste: " + str(currentFold))
-        testSet = foldsCopy[currentFold]
+        print("fold de teste: " + str(indexFold))
+        testSet = foldsCopy[indexFold]
 
         # The rest of the folds are the training set, so we concatenate them
         trainingSet = []
         for j in range(k):
-            if j != currentFold:
+            # If the index is not the same as the test set index
+            if j != indexFold:
+                # Append all the instances of the fold to the training set
                 for instance in foldsCopy[j]:
                     print("Adicionando uma instancia ao training set")
                     trainingSet.append(instance)
@@ -241,6 +250,42 @@ def create_k_fold_validation(k):
         write_csv(trainingSet, 'fold_train_' + str(currentFold) + '.csv')
 
 
+# Function that does the one hot encoding
+# Receives the instances of the training set and the test set
+# Returns 2 lists with the activity IDs encoded
+def OneHotEncoding(trainingSet, testSet):
+    # Declaration of the variable that represents the data that will be converted
+    activitiesData = (["Downstairs", "Jogging", "Sitting", "Standing", "Upstairs", "Walking"])
+
+    # Integer mapping using LabelEncoder
+    labelEncoder = LabelEncoder()
+    intEncoded = labelEncoder.fit_transform(activitiesData)
+    intEncoded = intEncoded.reshape(len(intEncoded), 1)
+
+    # One hot encoding
+    oneHotEncoder = OneHotEncoder(sparse=False)
+    oneHotEncoded = oneHotEncoder.fit_transform(intEncoded)
+
+    # Declaration of the variable that represents list of the activities on trainingSet
+    activitiesOnTraining = []
+
+    # Declaration of the variable that represents list of the activities on testSet
+    activitiesOnTest = []
+
+    # For each instance on trainingSet
+    for instance in trainingSet:
+        # Append the activity on the list
+        activitiesOnTraining.append(oneHotEncoded(int(instance[-1])))
+
+    # For each instance on testSet
+    for instance in testSet:
+        # Append the activity on the list
+        activitiesOnTest.append(oneHotEncoded(int(instance[-1])))
+
+    # Return both activity lists encoded
+    return activitiesOnTraining, activitiesOnTest
+
+
 # Main function
 if __name__ == '__main__':
     # Read the csv file
@@ -255,5 +300,34 @@ if __name__ == '__main__':
     # Read the instances from the csv file
     instances = read_csv('instances.csv')
 
+    # Declaration of the variable that represents the number of folds
+    numberOfFolds = 10
+
     # Create the K fold cross validation (k = 10)
-    create_k_fold_validation(10)
+    create_k_fold_validation(numberOfFolds)
+
+    # For each fold (both training and test)
+    for currentFold in range(numberOfFolds):
+        # Read the training set (normalized)
+        currentTrainingSet = read_csv('fold_train_' + str(currentFold) + '.csv')
+
+        # Read the test set (normalized)
+        currentTestSet = read_csv('fold_test_' + str(currentFold) + '.csv')
+
+        # One hot encoding
+        onTrainingActivities, onTestActivities = OneHotEncoding(currentTrainingSet, currentTestSet)
+
+        # Create the MLP Classifier
+        NeuralNetwork = MLPClassifier(hidden_layer_sizes=(5,5))
+
+        # Train the MLP Classifier
+        NeuralNetwork.fit(currentTrainingSet, onTrainingActivities)
+
+        # Predict the test set
+        predictions = NeuralNetwork.predict(currentTestSet)
+
+        # Calculate the ROC (Receiver Operating Characteristic ) curve
+        # fpr, tpr, thresholds = roc_curve(onTestActivities, predictions)
+
+        # Calculate the accuracy (AUROC)
+        # accuracy = accuracy_score(onTestActivities, predictions)
