@@ -6,6 +6,7 @@ import random
 from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import roc_curve,accuracy_score
 
 # Declaration of the variable that represents the number of the samples
 numberOfSamples = 20 # Hz
@@ -327,7 +328,7 @@ if __name__ == '__main__':
         predictions = NeuralNetwork.predict(currentTestSet)
 
         # Calculate the ROC (Receiver Operating Characteristic ) curve
-        # fpr, tpr, thresholds = roc_curve(onTestActivities, predictions)
+        fpr, tpr, thresholds = roc_curve(onTestActivities, predictions)
 
         # Calculate the accuracy (AUROC)
-        # accuracy = accuracy_score(onTestActivities, predictions)
+        accuracy = accuracy_score(onTestActivities, predictions)
