@@ -51,7 +51,7 @@ def write_csv(data, fileName):
         writer.writerows(data)
 
 
-# Function "create_instance", it will create an instance with 20 samples of the same activity and same ID
+# Function "create_instances", it will create an instance with 20 samples of the same activity and same ID
 # Every line received have the following formate: "ID,Activity, timestamp, x, y, z"
 # Receives a list of lines and returns a list of instances
 def create_instances(rawData):
@@ -71,11 +71,11 @@ def create_instances(rawData):
             currentInstance = []
 
             # Insert the id and activity
-            for j in range(rowIndex, rowIndex + numberOfSamples):
+            for nextSample in range(numberOfSamples):
                 # Append the last 3 values of the line to the instance (as float)
-                currentInstance.append(float(rawData[j][3]))
-                currentInstance.append(float(rawData[j][4]))
-                currentInstance.append(float(rawData[j][5]))
+                currentInstance.append(float(rawData[rowIndex + numberOfSamples][3]))
+                currentInstance.append(float(rawData[rowIndex + numberOfSamples][4]))
+                currentInstance.append(float(rawData[rowIndex + numberOfSamples][5]))
 
             # Append the ID and the activity label to the instance
             currentInstance.append(rawData[rowIndex][0])
