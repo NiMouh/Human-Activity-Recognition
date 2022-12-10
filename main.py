@@ -48,7 +48,7 @@ def OneHotEncoding(trainingSet, testSet):
 # Main function
 if __name__ == '__main__':
     # Read the original data from the csv file
-    data = read_csv('time_series_data_human_activities.csv')
+    # data = read_csv('time_series_data_human_activities.csv')
 
     # Create the instances from the raw data
     # create_instances(data)
@@ -75,7 +75,7 @@ if __name__ == '__main__':
         onTrainingActivities, onTestActivities = OneHotEncoding(currentTrainingSet, currentTestSet)
 
         # Create the MLP Classifier
-        NeuralNetwork = MLPClassifier(hidden_layer_sizes=(5,5))
+        NeuralNetwork = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
 
         # Train the MLP Classifier
         NeuralNetwork.fit(currentTrainingSet, onTrainingActivities)
