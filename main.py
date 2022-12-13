@@ -3,6 +3,7 @@
 from managefiles import *
 from makeinstances import *
 from makefolds import *
+
 # Imports for the Neural Network
 from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
@@ -17,25 +18,28 @@ if __name__ == '__main__':
     # create_instances(data)
 
     # Read the instances from the csv file
-    # instances = read_csv('instances.csv')
+    # instances = read_instance('instances.csv')
 
     # Declaration of the variable that represents the number of folds
-    numberOfFolds = 1
+    # numberOfFolds = 10
 
     # Create the K fold cross validation (k = 10)
     # create_k_fold_validation(numberOfFolds)
 
+    # Declaration of the variable that represents the number of folders to analyze
+    foldersToAnalyze = 1
+
     # For each fold (both training and test)
-    for currentFold in range(numberOfFolds):
+    for currentFold in range(foldersToAnalyze):
         # Create the MLP Classifier
         NeuralNetwork = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 5), random_state=1,
                                       verbose=True)
 
         # Read the training set (normalized)
-        currentTrainingSet = read_csv('fold_train_' + str(currentFold) + '.csv')
+        currentTrainingSet = read_instance('fold_train_' + str(currentFold) + '.csv')
 
         # Read the test set (normalized)
-        currentTestSet = read_csv('fold_test_' + str(currentFold) + '.csv')
+        currentTestSet = read_instance('fold_test_' + str(currentFold) + '.csv')
 
         # Get the activities from the training set (last column of the bidimensional list)
         activitiesOnTraining = [instance[-1] for instance in currentTrainingSet]
@@ -79,10 +83,10 @@ if __name__ == '__main__':
             currentAUC = auc(fpr, tpr)
 
             # Print the AUC
-            print("AUC for class " + str(currentClass) + ": " + str(currentAUC))
+            print("AUC for class " + str(currentClass) + ": " + str(currentAUC * 100) + "%")
 
         # Calculate the final Score
         Score = roc_auc_score(activitiesOnTestEncoded, predictions)
 
         # Print the AUC value
-        print("Final Score: " + str(Score))
+        print("Final Score: " + str(Score * 100) + "%")

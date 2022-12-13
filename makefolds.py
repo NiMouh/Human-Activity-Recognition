@@ -1,6 +1,6 @@
 # Imports
 import math, random
-from managefiles import read_csv, write_csv
+from managefiles import read_instance, write_csv
 
 
 # Function that makes K fold cross validation
@@ -11,7 +11,7 @@ def create_k_fold_validation(k):
     folds = []
 
     # Declaration of auxiliary variable for the instances
-    instances = read_csv('instances.csv')
+    instances = read_instance('instances.csv')
 
     # Declaration of the ID's not taken (36 ID's initially)
     idsNotTaken = [i for i in range(1, 37)]
@@ -51,7 +51,9 @@ def create_k_fold_validation(k):
 
         # For each fold retrieve the fold with the least instances
         for currentFoldIndex in range(len(folds)):
+            # If the current fold has fewer instances than the previous one
             if len(folds[currentFoldIndex]) < leastInstancesFoldLength:
+                # Update the fold with the least instances
                 leastInstancesFoldLength = len(folds[currentFoldIndex])
                 leastIstancesFold = currentFoldIndex
 
@@ -70,11 +72,13 @@ def create_k_fold_validation(k):
         # The rest of the folds are the training set, so we concatenate them
         trainingSet = []
         for j in range(k):
-            # If the index is not the same as the test set index
-            if j != indexFold:
-                # Append all the instances of the fold to the training set
-                for instance in foldsCopy[j]:
-                    trainingSet.append(instance)
+            # If the index is the same as the test set, do nothing
+            if j == indexFold:
+                continue
+
+            # Append all the instances of the fold to the training set
+            for instance in foldsCopy[j]:
+                trainingSet.append(instance)
 
         # Declaration of the variable that will save the min and max values of the training set
         minValues = [math.inf, math.inf, math.inf]
