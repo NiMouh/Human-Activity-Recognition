@@ -26,6 +26,7 @@ if __name__ == '__main__':
     # Create the K fold cross validation (k = 10)
     # create_k_fold_validation(numberOfFolds)
 
+
     # Declaration of the variable that represents the number of folders to analyze
     foldersToAnalyze = 1
 

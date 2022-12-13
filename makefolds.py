@@ -21,21 +21,11 @@ def create_k_fold_validation(k):
 
     # For each fold, assign 'IDs_per_fold' ID's to it and append every instance with that ID to the fold
     for i in range(k):
-        # Declaration of the fold
-        OnGoingFold = []
+        # Declaration of the variable that will save the ID's that will enter on the fold
+        AtrributedIDs, idsNotTaken = getFoldIDs(idsNotTaken, idsPerFold)
 
-        # Take 3 IDs that are not taken
-        for j in range(idsPerFold):
-            # Randomly pick an ID
-            ID = random.choice(idsNotTaken)
-            # for each instance
-            for instance in instances:
-                # If the ID is the same as the instance ID (Second to last value)
-                if ID == int(instance[-2]):
-                    # Append the instance to the fold
-                    OnGoingFold.append(instance)
-            # Remove the ID from the list of not taken IDs
-            idsNotTaken.remove(ID)
+        # Declaration of the fold that will be atributted the instances
+        OnGoingFold = atributteInstances(AtrributedIDs, instances)
 
         # Append the fold to the list of folds
         folds.append(OnGoingFold)
@@ -71,6 +61,7 @@ def create_k_fold_validation(k):
 
         # The rest of the folds are the training set, so we concatenate them
         trainingSet = []
+
         for j in range(k):
             # If the index is the same as the test set, do nothing
             if j == indexFold:
@@ -81,71 +72,128 @@ def create_k_fold_validation(k):
                 trainingSet.append(instance)
 
         # Declaration of the variable that will save the min and max values of the training set
-        minValues = [math.inf, math.inf, math.inf]
-        maxValues = [-math.inf, -math.inf, -math.inf]
+        minValues, maxValues = getMinMax(trainingSet)
 
-        # Determine the min and max of the training set
-        for instance in trainingSet:
-            for index in range(0, len(instance) - 2, 3):
-
-                # Calculate the min and max of the x axis
-                if float(instance[index]) < minValues[0]:
-                    minValues[0] = float(instance[index])
-                if float(instance[index]) > maxValues[0]:
-                    maxValues[0] = float(instance[index])
-
-                # Calculate the min and max of the y axis
-                if float(instance[index + 1]) < minValues[1]:
-                    minValues[1] = float(instance[index + 1])
-                if float(instance[index + 1]) > maxValues[1]:
-                    maxValues[1] = float(instance[index + 1])
-
-                # Calculate the min and max of the z axis
-                if float(instance[index + 2]) < minValues[2]:
-                    minValues[2] = float(instance[index + 2])
-                if float(instance[index + 2]) > maxValues[2]:
-                    maxValues[2] = float(instance[index + 2])
-
-        # Normalize the training set
-        for instance in trainingSet:
-            for index in range(0, len(instance) - 2, 3):
-                # If max and min are the same, the value will be 0
-                if maxValues[0] - minValues[0] == 0 or maxValues[1] - minValues[1] == 0 or maxValues[2] - \
-                        minValues[2] == 0:
-                    # Remove the value from the instance
-                    instance.pop(index)
-                    instance.pop(index + 1)
-                    instance.pop(index + 2)
-                else:
-                    # Normalize all the axis
-                    instance[index] = str(
-                        (float(instance[index]) - minValues[0]) / (maxValues[0] - minValues[0]))
-                    instance[index + 1] = str(
-                        (float(instance[index + 1]) - minValues[1]) / (maxValues[1] - minValues[1]))
-                    instance[index + 2] = str(
-                        (float(instance[index + 2]) - minValues[2]) / (maxValues[2] - minValues[2]))
+        # Normalize the training set and the test set
+        trainingSet, testSet = normalizeData(trainingSet, testSet, minValues, maxValues)
 
         # Write the training set in a csv file
         write_csv(trainingSet, 'fold_train_' + str(indexFold) + '.csv')
 
-        # Normalize the test set
-        for instance in testSet:
-            for index in range(0, len(instance) - 2, 3):
-                # If max and min are the same, the value will be 0
-                if maxValues[0] - minValues[0] == 0 or maxValues[1] - minValues[1] == 0 or maxValues[2] - \
-                        minValues[2] == 0:
-                    # Remove the value from the instance
-                    instance.pop(index)
-                    instance.pop(index + 1)
-                    instance.pop(index + 2)
-                else:
-                    # Normalize all the axis
-                    instance[index] = str(
-                        (float(instance[index]) - minValues[0]) / (maxValues[0] - minValues[0]))
-                    instance[index + 1] = str(
-                        (float(instance[index + 1]) - minValues[1]) / (maxValues[1] - minValues[1]))
-                    instance[index + 2] = str(
-                        (float(instance[index + 2]) - minValues[2]) / (maxValues[2] - minValues[2]))
-
         # Write the test set to a file
         write_csv(testSet, 'fold_test_' + str(indexFold) + '.csv')
+
+
+# Function that will give the ID's of the instances that will enter on the fold
+# It will receive a list of the ID's and the number of ID's per fold
+# It will return a list of the ID's that will enter on the fold and the new list of ID's
+def getFoldIDs(ids, idsPerFold):
+    # Declaration of the variable that will save the ID's of the instances that will enter on the fold
+    foldIDs = []
+
+    # For each ID that will enter on the fold
+    for i in range(idsPerFold):
+        # Randomly pick an ID
+        ID = random.choice(ids)
+        # Append the ID to the list of ID's that will enter on the fold
+        foldIDs.append(ID)
+        # Remove the ID from the list of ID's that are not taken
+        ids.remove(ID)
+
+    # Return the list of ID's that will enter on the fold and the new list of ID's
+    return foldIDs, ids
+
+
+# Function that will atributte the instances to the folds
+# It will receive the OnGoingFold, the list of ID's that will enter on the fold and the list of instances
+# It will return the OnGoingFold with the instances that will enter on the fold
+def atributteInstances(foldIDs, instances):
+    # Declaration of the variable that will represent the fold
+    OnGoingFold = []
+
+    # For each instance
+    for instance in instances:
+        # If the ID of the instance is in the list of ID's that will enter on the fold
+        if int(instance[-2]) in foldIDs:
+            # Append the instance to the OnGoingFold
+            OnGoingFold.append(instance)
+
+    # Return the OnGoingFold with the instances that will enter on the fold
+    return OnGoingFold
+
+
+# Function that will find the min and max values of the training set
+# It will receive the training set and will return the min and max values
+def getMinMax(trainingSet):
+    # Declaration of the variable that will save the min and max values of the training set
+    minValues = [math.inf, math.inf, math.inf]
+    maxValues = [-math.inf, -math.inf, -math.inf]
+
+    # Determine the min and max of the training set
+    for instance in trainingSet:
+        for index in range(0, len(instance) - 2, 3):
+
+            # Calculate the min and max of the x axis
+            if float(instance[index]) < minValues[0]:
+                minValues[0] = float(instance[index])
+            if float(instance[index]) > maxValues[0]:
+                maxValues[0] = float(instance[index])
+
+            # Calculate the min and max of the y axis
+            if float(instance[index + 1]) < minValues[1]:
+                minValues[1] = float(instance[index + 1])
+            if float(instance[index + 1]) > maxValues[1]:
+                maxValues[1] = float(instance[index + 1])
+
+            # Calculate the min and max of the z axis
+            if float(instance[index + 2]) < minValues[2]:
+                minValues[2] = float(instance[index + 2])
+            if float(instance[index + 2]) > maxValues[2]:
+                maxValues[2] = float(instance[index + 2])
+
+    return minValues, maxValues
+
+
+# Function that will normalize the data
+# It will receive the training set, test set and min and max values, and will return the normalized training set and test set
+def normalizeData(trainingSet, testSet, minValues, maxValues):
+    # Normalize the training set
+    for instance in trainingSet:
+        for index in range(0, len(instance) - 2, 3):
+            # If max and min are the same, the value will be 0
+            if maxValues[0] - minValues[0] == 0 or maxValues[1] - minValues[1] == 0 or maxValues[2] - \
+                    minValues[2] == 0:
+                # Remove the value from the instance
+                instance.pop(index)
+                instance.pop(index + 1)
+                instance.pop(index + 2)
+                continue
+            # Normalize all the axis
+            instance[index] = str(
+                (float(instance[index]) - minValues[0]) / (maxValues[0] - minValues[0]))
+            instance[index + 1] = str(
+                (float(instance[index + 1]) - minValues[1]) / (maxValues[1] - minValues[1]))
+            instance[index + 2] = str(
+                (float(instance[index + 2]) - minValues[2]) / (maxValues[2] - minValues[2]))
+
+    # Normalize the test set
+    for instance in testSet:
+        for index in range(0, len(instance) - 2, 3):
+            # If max and min are the same, the value will be 0
+            if maxValues[0] - minValues[0] == 0 or maxValues[1] - minValues[1] == 0 or maxValues[2] - \
+                    minValues[2] == 0:
+                # Remove the value from the instance
+                instance.pop(index)
+                instance.pop(index + 1)
+                instance.pop(index + 2)
+                continue
+
+            # Normalize all the axis
+            instance[index] = str(
+                (float(instance[index]) - minValues[0]) / (maxValues[0] - minValues[0]))
+            instance[index + 1] = str(
+                (float(instance[index + 1]) - minValues[1]) / (maxValues[1] - minValues[1]))
+            instance[index + 2] = str(
+                (float(instance[index + 2]) - minValues[2]) / (maxValues[2] - minValues[2]))
+
+    return trainingSet, testSet
