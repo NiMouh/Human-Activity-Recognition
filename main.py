@@ -5,45 +5,8 @@ from makeinstances import *
 from makefolds import *
 # Imports for the Neural Network
 from sklearn.neural_network import MLPClassifier
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.preprocessing import LabelEncoder
-from sklearn.metrics import roc_curve,accuracy_score
-
-# Function that does the one hot encoding
-# Receives the instances of the training set and the test set
-# Returns 2 lists with the activity IDs encoded
-def OneHotEncoding(trainingSet, testSet):
-    # Declaration of the variable that represents the data that will be converted
-    activitiesData = (["Downstairs", "Jogging", "Sitting", "Standing", "Upstairs", "Walking"])
-
-    # Integer mapping using LabelEncoder
-    labelEncoder = LabelEncoder()
-    intEncoded = labelEncoder.fit_transform(activitiesData)
-    intEncoded = intEncoded.reshape(len(intEncoded), 1)
-
-    # One hot encoding
-    oneHotEncoder = OneHotEncoder(sparse=False)
-    oneHotEncoded = oneHotEncoder.fit_transform(intEncoded)
-
-    # Declaration of the variable that represents list of the activities on trainingSet
-    activitiesOnTraining = []
-
-    # Declaration of the variable that represents list of the activities on testSet
-    activitiesOnTest = []
-
-    # For each instance on trainingSet
-    for instance in trainingSet:
-        # Append the activity on the list
-        activitiesOnTraining.append(oneHotEncoded(int(instance[-1])))
-
-    # For each instance on testSet
-    for instance in testSet:
-        # Append the activity on the list
-        activitiesOnTest.append(oneHotEncoded(int(instance[-1])))
-
-    # Return both activity lists encoded
-    return activitiesOnTraining, activitiesOnTest
-
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+from sklearn.metrics import roc_curve, auc, roc_auc_score
 
 # Main function
 if __name__ == '__main__':
@@ -57,34 +20,69 @@ if __name__ == '__main__':
     # instances = read_csv('instances.csv')
 
     # Declaration of the variable that represents the number of folds
-    numberOfFolds = 10
+    numberOfFolds = 1
 
     # Create the K fold cross validation (k = 10)
     # create_k_fold_validation(numberOfFolds)
 
-
     # For each fold (both training and test)
     for currentFold in range(numberOfFolds):
+        # Create the MLP Classifier
+        NeuralNetwork = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 5), random_state=1,
+                                      verbose=True)
+
         # Read the training set (normalized)
         currentTrainingSet = read_csv('fold_train_' + str(currentFold) + '.csv')
 
         # Read the test set (normalized)
         currentTestSet = read_csv('fold_test_' + str(currentFold) + '.csv')
 
-        # One hot encoding
-        onTrainingActivities, onTestActivities = OneHotEncoding(currentTrainingSet, currentTestSet)
+        # Get the activities from the training set (last column of the bidimensional list)
+        activitiesOnTraining = [instance[-1] for instance in currentTrainingSet]
 
-        # Create the MLP Classifier
-        NeuralNetwork = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
+        # Get the activities from the test set (last column of the bidimensional list)
+        activitiesOnTest = [instance[-1] for instance in currentTestSet]
+
+        # Declaration of the variable that represents the label Encoder
+        labelEncoder = LabelEncoder()
+
+        # Declaration of the variable that represents the one hot encoder
+        oneHotEncoder = OneHotEncoder(sparse=False)
+
+        # Declaration of the variable that represents the one hot encoder version of the activities on training set
+        activitiesOnTrainingEncoded = labelEncoder.fit_transform(activitiesOnTraining)
+
+        activitiesOnTrainingEncoded = activitiesOnTrainingEncoded.reshape(len(activitiesOnTrainingEncoded), 1)
+        activitiesOnTrainingEncoded = oneHotEncoder.fit_transform(activitiesOnTrainingEncoded)
+
+        # Declaration of the variable that represents the one hot encoder version of the activities on test set
+        activitiesOnTestEncoded = labelEncoder.fit_transform(activitiesOnTest)
+
+        activitiesOnTestEncoded = activitiesOnTestEncoded.reshape(len(activitiesOnTestEncoded), 1)
+        activitiesOnTestEncoded = oneHotEncoder.fit_transform(activitiesOnTestEncoded)
 
         # Train the MLP Classifier
-        NeuralNetwork.fit(currentTrainingSet, onTrainingActivities)
+        NeuralNetwork.fit(currentTrainingSet, activitiesOnTrainingEncoded)
 
         # Predict the test set
         predictions = NeuralNetwork.predict(currentTestSet)
 
-        # Calculate the ROC (Receiver Operating Characteristic ) curve
-        fpr, tpr, thresholds = roc_curve(onTestActivities, predictions)
+        # Run throught each class and calculate the ROC curve
+        for currentClass in range(6):
+            # Get the probabilities of the current class
+            probabilities = [prediction[currentClass] for prediction in predictions]
 
-        # Calculate the accuracy (AUROC)
-        accuracy = accuracy_score(onTestActivities, predictions)
+            # Get the ROC curve
+            fpr, tpr, thresholds = roc_curve(activitiesOnTestEncoded[:, currentClass], probabilities)
+
+            # Get the AUC
+            currentAUC = auc(fpr, tpr)
+
+            # Print the AUC
+            print("AUC for class " + str(currentClass) + ": " + str(currentAUC))
+
+        # Calculate the final Score
+        Score = roc_auc_score(activitiesOnTestEncoded, predictions)
+
+        # Print the AUC value
+        print("Final Score: " + str(Score))

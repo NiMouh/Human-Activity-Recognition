@@ -82,7 +82,7 @@ def create_k_fold_validation(k):
 
         # Determine the min and max of the training set
         for instance in trainingSet:
-            for index in range(2, len(instance), 3):
+            for index in range(0, len(instance) - 2, 3):
 
                 # Calculate the min and max of the x axis
                 if float(instance[index]) < minValues[0]:
@@ -104,7 +104,7 @@ def create_k_fold_validation(k):
 
         # Normalize the training set
         for instance in trainingSet:
-            for index in range(2, len(instance), 3):
+            for index in range(0, len(instance) - 2, 3):
                 # If max and min are the same, the value will be 0
                 if maxValues[0] - minValues[0] == 0 or maxValues[1] - minValues[1] == 0 or maxValues[2] - \
                         minValues[2] == 0:
@@ -126,7 +126,7 @@ def create_k_fold_validation(k):
 
         # Normalize the test set
         for instance in testSet:
-            for index in range(2, len(instance), 3):
+            for index in range(0, len(instance) - 2, 3):
                 # If max and min are the same, the value will be 0
                 if maxValues[0] - minValues[0] == 0 or maxValues[1] - minValues[1] == 0 or maxValues[2] - \
                         minValues[2] == 0:

@@ -1,6 +1,7 @@
 # Imports
 import csv
 
+
 # Function that reads the data from a csv file (every line is a list)
 # Receives the name of the file and returns a list of lists
 def read_csv(fileName):
@@ -12,9 +13,20 @@ def read_csv(fileName):
 
     # Read line by line
     reader = csv.reader(file)
-    for row in reader:
+    for data in reader:
         # If the row is not empty, append it to the data
-        if row:
+        if data:
+            # Declaration of the variable that will store the data of the line
+            row = []
+            # Convert all the values to float (except the last)
+            for index in range(len(data) - 2):
+                row.append(float(data[index]))
+
+            # Covert the last 2 values to int
+            row.append(int(data[-2]))
+            row.append(int(data[-1]))
+
+            # Append the row to the list
             rawData.append(row)
 
     # Close the file
