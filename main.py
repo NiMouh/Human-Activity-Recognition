@@ -9,6 +9,9 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from sklearn.metrics import roc_curve, auc, roc_auc_score
 
+# Import for the plots
+import matplotlib.pyplot as plt
+
 # Main function
 if __name__ == '__main__':
     # Read the original data from the csv file
@@ -26,7 +29,6 @@ if __name__ == '__main__':
     # Create the K fold cross validation (k = 10)
     # create_k_fold_validation(numberOfFolds)
 
-
     # Declaration of the variable that represents the number of folders to analyze
     foldersToAnalyze = 1
 
@@ -34,7 +36,7 @@ if __name__ == '__main__':
     for currentFold in range(foldersToAnalyze):
         # Create the MLP Classifier
         NeuralNetwork = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 5), random_state=1,
-                                      verbose=True)
+                                      max_iter=300, verbose=True)
 
         # Read the training set (normalized)
         currentTrainingSet = read_instance('fold_train_' + str(currentFold) + '.csv')
@@ -83,8 +85,14 @@ if __name__ == '__main__':
             # Get the AUC
             currentAUC = auc(fpr, tpr)
 
+            # Draw the ROC curve for each class
+            plt.plot(fpr, tpr, label='ROC curve (area = %0.2f)' % currentAUC)
+
             # Print the AUC
             print("AUC for class " + str(currentClass) + ": " + str(currentAUC * 100) + "%")
+
+        # Save the plot
+        plt.savefig('ROC.png')
 
         # Calculate the final Score
         Score = roc_auc_score(activitiesOnTestEncoded, predictions)

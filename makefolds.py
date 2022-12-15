@@ -77,6 +77,10 @@ def create_k_fold_validation(k):
         # Normalize the training set and the test set
         trainingSet, testSet = normalizeData(trainingSet, testSet, minValues, maxValues)
 
+        # Shuffle the training set and the test set
+        random.shuffle(trainingSet)
+        random.shuffle(testSet)
+
         # Write the training set in a csv file
         write_csv(trainingSet, 'fold_train_' + str(indexFold) + '.csv')
 
