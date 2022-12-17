@@ -7,10 +7,26 @@ from makefolds import *
 # Imports for the Neural Network
 from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
-from sklearn.metrics import roc_curve, auc, roc_auc_score
+from sklearn.metrics import roc_curve, auc, roc_auc_score, accuracy_score
 
 # Import for the plots
 import matplotlib.pyplot as plt
+
+
+# Function that receives a list and returns the One Hot Encoding of the list
+def oneHotEncoding(item):
+    # Declaration of the represents the label encoder
+    labelEncoder = LabelEncoder()
+
+    # Declaration of the integer encoded
+    integerEncoded = labelEncoder.fit_transform(item)
+    integerEncoded = integerEncoded.reshape(len(integerEncoded), 1)
+
+    # Declaration of the one hot encoder
+    oneHotEncoder = OneHotEncoder(sparse=False)
+
+    # Return the one hot encoding
+    return oneHotEncoder.fit_transform(integerEncoded)
 
 # Main function
 if __name__ == '__main__':
@@ -35,8 +51,7 @@ if __name__ == '__main__':
     # For each fold (both training and test)
     for currentFold in range(foldersToAnalyze):
         # Create the MLP Classifier
-        NeuralNetwork = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 5), random_state=1,
-                                      max_iter=300, verbose=True)
+        NeuralNetwork = MLPClassifier(hidden_layer_sizes=(60, 60), verbose=True)
 
         # Read the training set (normalized)
         currentTrainingSet = read_instance('fold_train_' + str(currentFold) + '.csv')
@@ -44,29 +59,29 @@ if __name__ == '__main__':
         # Read the test set (normalized)
         currentTestSet = read_instance('fold_test_' + str(currentFold) + '.csv')
 
+        # Shuffle the training set
+        random.shuffle(currentTrainingSet)
+
+        # Shuffle the test set
+        random.shuffle(currentTestSet)
+
         # Get the activities from the training set (last column of the bidimensional list)
         activitiesOnTraining = [instance[-1] for instance in currentTrainingSet]
 
         # Get the activities from the test set (last column of the bidimensional list)
         activitiesOnTest = [instance[-1] for instance in currentTestSet]
 
-        # Declaration of the variable that represents the label Encoder
-        labelEncoder = LabelEncoder()
+        # Delete the activities from the training set (last column of the bidimensional list)
+        currentTrainingSet = [instance[:-2] for instance in currentTrainingSet]
 
-        # Declaration of the variable that represents the one hot encoder
-        oneHotEncoder = OneHotEncoder(sparse=False)
+        # Delete the activities from the test set (last column of the bidimensional list)
+        currentTestSet = [instance[:-2] for instance in currentTestSet]
 
         # Declaration of the variable that represents the one hot encoder version of the activities on training set
-        activitiesOnTrainingEncoded = labelEncoder.fit_transform(activitiesOnTraining)
-
-        activitiesOnTrainingEncoded = activitiesOnTrainingEncoded.reshape(len(activitiesOnTrainingEncoded), 1)
-        activitiesOnTrainingEncoded = oneHotEncoder.fit_transform(activitiesOnTrainingEncoded)
+        activitiesOnTrainingEncoded = oneHotEncoding(activitiesOnTraining)
 
         # Declaration of the variable that represents the one hot encoder version of the activities on test set
-        activitiesOnTestEncoded = labelEncoder.fit_transform(activitiesOnTest)
-
-        activitiesOnTestEncoded = activitiesOnTestEncoded.reshape(len(activitiesOnTestEncoded), 1)
-        activitiesOnTestEncoded = oneHotEncoder.fit_transform(activitiesOnTestEncoded)
+        activitiesOnTestEncoded = oneHotEncoding(activitiesOnTest)
 
         # Train the MLP Classifier
         NeuralNetwork.fit(currentTrainingSet, activitiesOnTrainingEncoded)
@@ -87,6 +102,12 @@ if __name__ == '__main__':
 
             # Draw the ROC curve for each class
             plt.plot(fpr, tpr, label='ROC curve (area = %0.2f)' % currentAUC)
+
+            # Obtain the accuracy score for the current class
+            currentAccuracy = accuracy_score(activitiesOnTestEncoded[:, currentClass], probabilities)
+
+            # Print the accuracy score for the current class
+            print('Accuracy for class ' + str(currentClass) + ': ' + str(currentAccuracy))
 
             # Print the AUC
             print("AUC for class " + str(currentClass) + ": " + str(currentAUC * 100) + "%")
