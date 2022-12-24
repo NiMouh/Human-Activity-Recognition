@@ -46,12 +46,10 @@ def create_instances(rawData):
             currentInstance.append(float(rawData[j][5]))
 
         # Append the ID and the activity label to the instance
-        currentInstance.append(int(rawData[rowIndex][0]))
-        currentInstance.append(int(activityLabels[rawData[rowIndex][1]]))
+        currentInstance.extend([int(rawData[rowIndex][0]), int(activityLabels[rawData[rowIndex][1]])])
 
         # Append the instance to the list of instances
         instances.append(currentInstance)
-
 
     # Save the instances to a csv file
     write_csv(instances, "instances.csv")

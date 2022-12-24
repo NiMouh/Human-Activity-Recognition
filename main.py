@@ -7,7 +7,7 @@ from makefolds import *
 # Imports for the Neural Network
 from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
-from sklearn.metrics import roc_curve, auc, roc_auc_score, accuracy_score
+from sklearn.metrics import roc_curve, auc, roc_auc_score, accuracy_score, confusion_matrix
 
 # Import for the plots
 import matplotlib.pyplot as plt
@@ -27,6 +27,7 @@ def oneHotEncoding(item):
 
     # Return the one hot encoding
     return oneHotEncoder.fit_transform(integerEncoded)
+
 
 # Main function
 if __name__ == '__main__':
@@ -48,10 +49,22 @@ if __name__ == '__main__':
     # Declaration of the variable that represents the number of folders to analyze
     foldersToAnalyze = 1
 
+    # Declaration of the variable that represents a list with the average final scores of the neural network
+    averageFinalScores = []
+
+    # Declaration of the variable that represents a boolean if it's the first iteration
+    firstIteration = True
+
+    # Create the MLP Classifier
+    NeuralNetwork = MLPClassifier(hidden_layer_sizes=(60, 60), verbose=True)
+
     # For each fold (both training and test)
     for currentFold in range(foldersToAnalyze):
-        # Create the MLP Classifier
-        NeuralNetwork = MLPClassifier(hidden_layer_sizes=(60, 60), verbose=True)
+
+        # If it's the not first iteration
+        # if not firstIteration:
+            # Load the neural network
+            # NeuralNetwork = joblib.load('NeuralNetwork.pkl')
 
         # Read the training set (normalized)
         currentTrainingSet = read_instance('fold_train_' + str(currentFold) + '.csv')
@@ -59,17 +72,17 @@ if __name__ == '__main__':
         # Read the test set (normalized)
         currentTestSet = read_instance('fold_test_' + str(currentFold) + '.csv')
 
-        # Shuffle the training set
-        random.shuffle(currentTrainingSet)
-
-        # Shuffle the test set
-        random.shuffle(currentTestSet)
-
         # Get the activities from the training set (last column of the bidimensional list)
         activitiesOnTraining = [instance[-1] for instance in currentTrainingSet]
 
+        # Get the user ID's from the training set (second to last column of the bidimensional list)
+        # usersOnTraining = [instance[-2] for instance in currentTrainingSet]
+
         # Get the activities from the test set (last column of the bidimensional list)
         activitiesOnTest = [instance[-1] for instance in currentTestSet]
+
+        # Get the user ID's from the test set (second to last column of the bidimensional list)
+        # usersOnTest = [instance[-2] for instance in currentTestSet]
 
         # Delete the activities from the training set (last column of the bidimensional list)
         currentTrainingSet = [instance[:-2] for instance in currentTrainingSet]
@@ -80,11 +93,17 @@ if __name__ == '__main__':
         # Declaration of the variable that represents the one hot encoder version of the activities on training set
         activitiesOnTrainingEncoded = oneHotEncoding(activitiesOnTraining)
 
+        # Declaration of the variable that represents the one hot encoder version of the user ID's on training set
+        # usersOnTrainingEncoded = oneHotEncoding(usersOnTraining)
+
         # Declaration of the variable that represents the one hot encoder version of the activities on test set
         activitiesOnTestEncoded = oneHotEncoding(activitiesOnTest)
 
+        # Declaration of the variable that represents the one hot encoder version of the user ID's on test set
+        # usersOnTestEncoded = oneHotEncoding(usersOnTest)
+
         # Train the MLP Classifier
-        NeuralNetwork.fit(currentTrainingSet, activitiesOnTrainingEncoded)
+        NeuralNetwork.fit(currentTrainingSet, activitiesOnTrainingEncoded)  # , usersOnTrainingEncoded
 
         # Predict the test set
         predictions = NeuralNetwork.predict(currentTestSet)
@@ -94,29 +113,58 @@ if __name__ == '__main__':
             # Get the probabilities of the current class
             probabilities = [prediction[currentClass] for prediction in predictions]
 
-            # Get the ROC curve
+            # Get the ROC curve with the probabilities and the activities on test set
             fpr, tpr, thresholds = roc_curve(activitiesOnTestEncoded[:, currentClass], probabilities)
 
-            # Get the AUC
+            # Get the AUC (Area Under the Curve) for the current class
             currentAUC = auc(fpr, tpr)
+            print("AUC for class " + str(currentClass) + ": " + str(currentAUC * 100) + "%")
 
             # Draw the ROC curve for each class
             plt.plot(fpr, tpr, label='ROC curve (area = %0.2f)' % currentAUC)
 
             # Obtain the accuracy score for the current class
             currentAccuracy = accuracy_score(activitiesOnTestEncoded[:, currentClass], probabilities)
-
-            # Print the accuracy score for the current class
             print('Accuracy for class ' + str(currentClass) + ': ' + str(currentAccuracy))
 
-            # Print the AUC
-            print("AUC for class " + str(currentClass) + ": " + str(currentAUC * 100) + "%")
+        # Save the ROC curve
+        plt.xlabel('False Positive Rate')
+        plt.ylabel('True Positive Rate')
+        plt.legend()
+        plt.savefig('ROC' + str(currentFold) + '.png')
+        plt.close()
 
-        # Save the plot
-        plt.savefig('ROC.png')
+        # Save the learning curve
+        plt.plot(NeuralNetwork.loss_curve_)
+        plt.xlabel('Time/Experience')
+        plt.ylabel('Improvement/Learning')
+        plt.legend(('Loss Curve',), loc='upper right')
+        plt.savefig('LearningCurve' + str(currentFold) + '.png')
+        plt.close()
+
+        # Make the confusion matrix
+        confusionMatrix = confusion_matrix(activitiesOnTestEncoded, predictions)
+        print("Confusion Matrix:")
+        print(confusionMatrix)
 
         # Calculate the final Score
-        Score = roc_auc_score(activitiesOnTestEncoded, predictions)
+        finalScore = roc_auc_score(activitiesOnTestEncoded, predictions)
+        print("Final Score: " + str(finalScore * 100) + "%")
 
-        # Print the AUC value
-        print("Final Score: " + str(Score * 100) + "%")
+        # Append the final score to the list
+        averageFinalScores.append(finalScore)
+
+        # Save the neural network model
+        # joblib.dump(NeuralNetwork, 'neural_network.pkl')
+
+        # If it's the first iteration (first fold)
+        firstIteration = False
+
+    # Calculate the average final score
+    # averageFinalScore = sum(averageFinalScores) / len(averageFinalScores)
+
+    # Calculate the deviation of the final scores
+    # deviationFinalScore = statistics.stdev(averageFinalScores)
+
+    # Calculate the final answer
+    # print("Final Answer: " + str(averageFinalScore * 100) + "% +/- " + str(deviationFinalScore * 100) + "%")

@@ -1,4 +1,4 @@
-# Trabalho Prático 2 de Inteligência Artificial
+# TP2 de Inteligência Artificial: Reconhecimento de atividades humanas
 
 ## Passo 1: Criação das instâncias
 

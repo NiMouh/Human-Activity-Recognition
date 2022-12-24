@@ -24,8 +24,7 @@ def read_instance(fileName):
         row = [float(data[index]) for index in range(len(data) - 2)]
 
         # Covert the last 2 values to int
-        row.append(int(data[-2]))
-        row.append(int(data[-1]))
+        row.extend([int(data[-2]), int(data[-1])])
 
         # Append the row to the list
         rawData.append(row)
