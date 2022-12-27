@@ -54,10 +54,8 @@ def create_k_fold_validation(k):
     for indexFold in range(k):
         foldsCopy = folds.copy()
 
-        # Declaration of the variable that will save the current test set
+        # Declaration of the variable that will save the current test set and the training set
         testSet = foldsCopy[indexFold]
-
-        # The rest of the folds are the training set, so we concatenate them
         trainingSet = []
 
         # For each fold, except the test set fold, concatenate the instances to the training set
@@ -79,10 +77,8 @@ def create_k_fold_validation(k):
         random.shuffle(trainingSet)
         random.shuffle(testSet)
 
-        # Write the training set in a csv file
+        # Write the training and test set in a csv file
         write_csv(trainingSet, 'fold_train_' + str(indexFold) + '.csv')
-
-        # Write the test set to a file
         write_csv(testSet, 'fold_test_' + str(indexFold) + '.csv')
 
 
@@ -157,40 +153,32 @@ def normalizeData(trainingSet, testSet, minValues, maxValues):
     # Normalize the training set
     for instance in trainingSet:
         for index in range(0, len(instance) - 2, 3):
-            # If max and min are the same, the value will be 0
+            # If max and min are the same, the value will be removed
             if maxValues[0] - minValues[0] == 0 or maxValues[1] - minValues[1] == 0 or maxValues[2] - \
                     minValues[2] == 0:
-                # Remove the value from the instance
                 instance.pop(index)
                 instance.pop(index + 1)
                 instance.pop(index + 2)
                 continue
             # Normalize all the axis
-            instance[index] = str(
-                (float(instance[index]) - minValues[0]) / (maxValues[0] - minValues[0]))
-            instance[index + 1] = str(
-                (float(instance[index + 1]) - minValues[1]) / (maxValues[1] - minValues[1]))
-            instance[index + 2] = str(
-                (float(instance[index + 2]) - minValues[2]) / (maxValues[2] - minValues[2]))
+            instance[index] = (float(instance[index]) - minValues[0]) / (maxValues[0] - minValues[0])
+            instance[index + 1] = (float(instance[index + 1]) - minValues[1]) / (maxValues[1] - minValues[1])
+            instance[index + 2] = (float(instance[index + 2]) - minValues[2]) / (maxValues[2] - minValues[2])
 
     # Normalize the test set
     for instance in testSet:
         for index in range(0, len(instance) - 2, 3):
-            # If max and min are the same, the value will be 0
+            # If max and min are the same, the value will be removed
             if maxValues[0] - minValues[0] == 0 or maxValues[1] - minValues[1] == 0 or maxValues[2] - \
                     minValues[2] == 0:
-                # Remove the value from the instance
                 instance.pop(index)
                 instance.pop(index + 1)
                 instance.pop(index + 2)
                 continue
 
             # Normalize all the axis
-            instance[index] = str(
-                (float(instance[index]) - minValues[0]) / (maxValues[0] - minValues[0]))
-            instance[index + 1] = str(
-                (float(instance[index + 1]) - minValues[1]) / (maxValues[1] - minValues[1]))
-            instance[index + 2] = str(
-                (float(instance[index + 2]) - minValues[2]) / (maxValues[2] - minValues[2]))
+            instance[index] = (float(instance[index]) - minValues[0]) / (maxValues[0] - minValues[0])
+            instance[index + 1] = (float(instance[index + 1]) - minValues[1]) / (maxValues[1] - minValues[1])
+            instance[index + 2] = (float(instance[index + 2]) - minValues[2]) / (maxValues[2] - minValues[2])
 
     return trainingSet, testSet
