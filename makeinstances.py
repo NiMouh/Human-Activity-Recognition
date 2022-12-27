@@ -4,7 +4,7 @@ from managefiles import write_csv
 # Declaration of the variable that represents the number of the samples
 numberOfSamples = 20  # Hz
 
-# Declaration of the Activity labels
+# Declaration of the dictionary of the activity labels
 activityLabels = {
     'Downstairs': 0,
     'Jogging': 1,
@@ -17,13 +17,12 @@ activityLabels = {
 
 # Function "create_instance", it will create an instance with 20 samples of the same activity and same ID
 # Every line received have the following formate: "ID,Activity, timestamp, x, y, z"
-# Receives a list of lines and returns a list of instances
+# Receives a list of lines and returns a list of instances with the formate: "x,y,z,...,x,y,z,User ID,Activity ID"
 def create_instances(rawData):
-    # Variable that represents the instances
+    # Variable that represents the list of instances
     instances = []
 
-    # Run through the data, if you find a line with the same ID and activity, add it to the instance.
-    # Repeat the process until you got 'number_of_samples' samples
+    # Run through the data
     for rowIndex in range(len(rawData)):
 
         # If the index plus the number of samples overlaps the length of the raw_data, break the loop
@@ -38,12 +37,9 @@ def create_instances(rawData):
         # Initial data structure
         currentInstance = []
 
-        # Insert the id and activity
+        # Append the last 3 values of the line to the instance (x,y,z)
         for j in range(rowIndex, rowIndex + numberOfSamples):
-            # Append the last 3 values of the line to the instance (as float)
-            currentInstance.append(float(rawData[j][3]))
-            currentInstance.append(float(rawData[j][4]))
-            currentInstance.append(float(rawData[j][5]))
+            currentInstance.extend([float(rawData[j][index]) for index in range(3, 6)])
 
         # Append the ID and the activity label to the instance
         currentInstance.extend([int(rawData[rowIndex][0]), int(activityLabels[rawData[rowIndex][1]])])

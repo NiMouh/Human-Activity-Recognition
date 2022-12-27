@@ -31,28 +31,18 @@ def oneHotEncoding(item):
 
 # Main function
 if __name__ == '__main__':
-    # Read the original data from the csv file
+    # PART 1 - Read the original data from the csv file, and create the instances.
     # data = read_csv('time_series_data_human_activities.csv')
-
-    # Create the instances from the raw data
     # create_instances(data)
 
-    # Read the instances from the csv file
+    # PART 2 - Read the instances from the csv file and create the folds using the K-Fold Cross Validation
     # instances = read_instance('instances.csv')
-
-    # Declaration of the variable that represents the number of folds
     # numberOfFolds = 10
-
-    # Create the K fold cross validation (k = 10)
     # create_k_fold_validation(numberOfFolds)
 
-    # Declaration of the variable that represents the number of folders to analyze
+    # PART 3 - Read the folds from the csv files and create the neural network
     foldersToAnalyze = 1
-
-    # Declaration of the variable that represents a list with the average final scores of the neural network
     averageFinalScores = []
-
-    # Declaration of the variable that represents a boolean if it's the first iteration
     firstIteration = True
 
     # Create the MLP Classifier
@@ -61,10 +51,9 @@ if __name__ == '__main__':
     # For each fold (both training and test)
     for currentFold in range(foldersToAnalyze):
 
-        # If it's the not first iteration
+        # If it's the not first iteration, load the neural network
         # if not firstIteration:
-            # Load the neural network
-            # NeuralNetwork = joblib.load('NeuralNetwork.pkl')
+        # NeuralNetwork = joblib.load('NeuralNetwork.pkl')
 
         # Read the training set (normalized)
         currentTrainingSet = read_instance('fold_train_' + str(currentFold) + '.csv')
@@ -72,34 +61,24 @@ if __name__ == '__main__':
         # Read the test set (normalized)
         currentTestSet = read_instance('fold_test_' + str(currentFold) + '.csv')
 
-        # Get the activities from the training set (last column of the bidimensional list)
+        # Get the activities and user ID'S from the training set (last 2 columns of the bidimensional list)
         activitiesOnTraining = [instance[-1] for instance in currentTrainingSet]
-
-        # Get the user ID's from the training set (second to last column of the bidimensional list)
         # usersOnTraining = [instance[-2] for instance in currentTrainingSet]
 
-        # Get the activities from the test set (last column of the bidimensional list)
+        # Get the activities and user ID's from the test set (last 2 columns of the bidimensional list)
         activitiesOnTest = [instance[-1] for instance in currentTestSet]
-
-        # Get the user ID's from the test set (second to last column of the bidimensional list)
         # usersOnTest = [instance[-2] for instance in currentTestSet]
 
-        # Delete the activities from the training set (last column of the bidimensional list)
+        # Delete the activities and ID's from the training and test set (last 2 columns of the bidimensional list)
         currentTrainingSet = [instance[:-2] for instance in currentTrainingSet]
-
-        # Delete the activities from the test set (last column of the bidimensional list)
         currentTestSet = [instance[:-2] for instance in currentTestSet]
 
-        # Declaration of the variable that represents the one hot encoder version of the activities on training set
+        # Declaration of the variable that represents the encoded version of the activities and user ID's on training set
         activitiesOnTrainingEncoded = oneHotEncoding(activitiesOnTraining)
-
-        # Declaration of the variable that represents the one hot encoder version of the user ID's on training set
         # usersOnTrainingEncoded = oneHotEncoding(usersOnTraining)
 
-        # Declaration of the variable that represents the one hot encoder version of the activities on test set
+        # Declaration of the variable that represents the encoded version of the activities and user ID's on test set
         activitiesOnTestEncoded = oneHotEncoding(activitiesOnTest)
-
-        # Declaration of the variable that represents the one hot encoder version of the user ID's on test set
         # usersOnTestEncoded = oneHotEncoding(usersOnTest)
 
         # Train the MLP Classifier
@@ -108,7 +87,7 @@ if __name__ == '__main__':
         # Predict the test set
         predictions = NeuralNetwork.predict(currentTestSet)
 
-        # Run throught each class and calculate the ROC curve
+        # Run throught each class and calculate the ROC curve, AUC and accuracy
         for currentClass in range(6):
             # Get the probabilities of the current class
             probabilities = [prediction[currentClass] for prediction in predictions]
@@ -116,14 +95,12 @@ if __name__ == '__main__':
             # Get the ROC curve with the probabilities and the activities on test set
             fpr, tpr, thresholds = roc_curve(activitiesOnTestEncoded[:, currentClass], probabilities)
 
-            # Get the AUC (Area Under the Curve) for the current class
             currentAUC = auc(fpr, tpr)
             print("AUC for class " + str(currentClass) + ": " + str(currentAUC * 100) + "%")
 
             # Draw the ROC curve for each class
             plt.plot(fpr, tpr, label='ROC curve (area = %0.2f)' % currentAUC)
 
-            # Obtain the accuracy score for the current class
             currentAccuracy = accuracy_score(activitiesOnTestEncoded[:, currentClass], probabilities)
             print('Accuracy for class ' + str(currentClass) + ': ' + str(currentAccuracy))
 
@@ -160,10 +137,8 @@ if __name__ == '__main__':
         # If it's the first iteration (first fold)
         firstIteration = False
 
-    # Calculate the average final score
+    # Calculate the average final score of the neural network and his standard deviation
     # averageFinalScore = sum(averageFinalScores) / len(averageFinalScores)
-
-    # Calculate the deviation of the final scores
     # deviationFinalScore = statistics.stdev(averageFinalScores)
 
     # Calculate the final answer

@@ -14,9 +14,8 @@ def read_instance(fileName):
     # Read line by line
     reader = csv.reader(file)
 
-    # For every line in the file
+    # For every line in the file, if the data is not empty append it to the list
     for data in reader:
-        # If data is empty, skip the line
         if not data:
             continue
 
@@ -47,9 +46,8 @@ def read_csv(fileName):
     # Read line by line
     reader = csv.reader(file)
 
-    # For every line in the file
+    # For every line in the file, if the data is not empty append it to the list
     for data in reader:
-        # If data is empty, skip the line
         if not data:
             continue
 
@@ -69,7 +67,6 @@ def write_csv(data, fileName):
         # Write the data
         writer = csv.writer(file)
 
-        # For every line in the data
+        # For every line in the data write it to the file
         for line in data:
-            # Write the line
             writer.writerow(line)

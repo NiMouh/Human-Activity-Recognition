@@ -41,9 +41,7 @@ def create_k_fold_validation(k):
 
         # For each fold retrieve the fold with the least instances
         for currentFoldIndex in range(len(folds)):
-            # If the current fold has fewer instances than the previous one
             if len(folds[currentFoldIndex]) < leastInstancesFoldLength:
-                # Update the fold with the least instances
                 leastInstancesFoldLength = len(folds[currentFoldIndex])
                 leastIstancesFold = currentFoldIndex
 
@@ -54,20 +52,20 @@ def create_k_fold_validation(k):
 
     # For each iteration, create 'k' training and test sets (every fold will be a test set once)
     for indexFold in range(k):
-        # Declaration of the variable that represents a copy of the list of folds
         foldsCopy = folds.copy()
 
+        # Declaration of the variable that will save the current test set
         testSet = foldsCopy[indexFold]
 
         # The rest of the folds are the training set, so we concatenate them
         trainingSet = []
 
+        # For each fold, except the test set fold, concatenate the instances to the training set
         for j in range(k):
             # If the index is the same as the test set, do nothing
             if j == indexFold:
                 continue
 
-            # Append all the instances of the fold to the training set
             for instance in foldsCopy[j]:
                 trainingSet.append(instance)
 
@@ -95,13 +93,10 @@ def getFoldIDs(ids, idsPerFold):
     # Declaration of the variable that will save the ID's of the instances that will enter on the fold
     foldIDs = []
 
-    # For each ID that will enter on the fold
+    # For each ID that will enter on the fold, randomly choose an ID from the list of ID's and append it to the fold
     for i in range(idsPerFold):
-        # Randomly pick an ID
         ID = random.choice(ids)
-        # Append the ID to the list of ID's that will enter on the fold
         foldIDs.append(ID)
-        # Remove the ID from the list of ID's that are not taken
         ids.remove(ID)
 
     # Return the list of ID's that will enter on the fold and the new list of ID's
@@ -115,11 +110,9 @@ def atributteInstances(foldIDs, instances):
     # Declaration of the variable that will represent the fold
     OnGoingFold = []
 
-    # For each instance
+    # For each instance, check if the ID is in the list of ID's that will enter on the fold and append it to the fold
     for instance in instances:
-        # If the ID of the instance is in the list of ID's that will enter on the fold
         if int(instance[-2]) in foldIDs:
-            # Append the instance to the OnGoingFold
             OnGoingFold.append(instance)
 
     # Return the OnGoingFold with the instances that will enter on the fold
