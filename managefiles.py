@@ -28,11 +28,11 @@ def read_instance(fileName):
         # Append the row to the list
         rawData.append(row)
 
-
     # Close the file
     file.close()
 
     return rawData
+
 
 # Function that reads the data from a csv file (every line is a list)
 # Receives the name of the file and returns a list of lists with the data
@@ -58,6 +58,7 @@ def read_csv(fileName):
     file.close()
 
     return rawData
+
 
 # Function that writes a list of lists to a csv file
 # Receives the name of the file and the list of data to write

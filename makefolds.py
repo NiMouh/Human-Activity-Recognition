@@ -25,29 +25,18 @@ def create_k_fold_validation(k):
         AtrributedIDs, idsNotTaken = getFoldIDs(idsNotTaken, idsPerFold)
 
         # Declaration of the fold that will be atributted the instances
-        OnGoingFold = atributteInstances(AtrributedIDs, instances)
+        OnGoingFold = [instance for instance in instances if int(instance[-2]) in AtrributedIDs]
 
         # Append the fold to the list of folds
         folds.append(OnGoingFold)
 
     # For each ID that is not taken, assign it to the fold with the least instances (to balance the folds)
     for ID in idsNotTaken:
+        leastIstancesFold = folds.index(min(folds, key=len))
 
-        # Declaration of a variable for the fold with the least instances
-        leastIstancesFold = 0
-
-        # Declaration of a variable that saves the lenght of the first fold
-        leastInstancesFoldLength = len(folds[0])
-
-        # For each fold retrieve the fold with the least instances
-        for currentFoldIndex in range(len(folds)):
-            if len(folds[currentFoldIndex]) < leastInstancesFoldLength:
-                leastInstancesFoldLength = len(folds[currentFoldIndex])
-                leastIstancesFold = currentFoldIndex
-
-        # For that fold, add the instances with the ID that is not taken
+        # For each instance, check if the ID is the ID that is not taken and append it to the fold with the least instances
         for instance in instances:
-            if ID == int(instance[-2]):
+            if int(instance[-2]) == ID:
                 folds[leastIstancesFold].append(instance)
 
     # For each iteration, create 'k' training and test sets (every fold will be a test set once)
@@ -97,22 +86,6 @@ def getFoldIDs(ids, idsPerFold):
 
     # Return the list of ID's that will enter on the fold and the new list of ID's
     return foldIDs, ids
-
-
-# Function that will atributte the instances to the folds
-# It will receive the OnGoingFold, the list of ID's that will enter on the fold and the list of instances
-# It will return the OnGoingFold with the instances that will enter on the fold
-def atributteInstances(foldIDs, instances):
-    # Declaration of the variable that will represent the fold
-    OnGoingFold = []
-
-    # For each instance, check if the ID is in the list of ID's that will enter on the fold and append it to the fold
-    for instance in instances:
-        if int(instance[-2]) in foldIDs:
-            OnGoingFold.append(instance)
-
-    # Return the OnGoingFold with the instances that will enter on the fold
-    return OnGoingFold
 
 
 # Function that will find the min and max values of the training set
