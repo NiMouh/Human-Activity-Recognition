@@ -81,8 +81,7 @@ def getFoldIDs(ids, idsPerFold):
     # For each ID that will enter on the fold, randomly choose an ID from the list of ID's and append it to the fold
     for i in range(idsPerFold):
         ID = random.choice(ids)
-        foldIDs.append(ID)
-        ids.remove(ID)
+        foldIDs.append(ids.pop(ids.index(ID)))
 
     # Return the list of ID's that will enter on the fold and the new list of ID's
     return foldIDs, ids

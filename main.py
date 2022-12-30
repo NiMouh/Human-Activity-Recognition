@@ -9,7 +9,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from sklearn.metrics import roc_curve, auc, roc_auc_score, accuracy_score, confusion_matrix
 
-# Import for the plots
+# Import for the graphs
 import matplotlib.pyplot as plt
 
 # Dictionary of the activity labels (reversed)
@@ -46,16 +46,15 @@ if __name__ == '__main__':
     # PART 3 - Read the folds from the csv files and create the neural network
     foldersToAnalyze = 1
     averageFinalScores = []
-    firstIteration = True
 
     # Create the MLP Classifier
-    NeuralNetwork = MLPClassifier(hidden_layer_sizes=(60, 60), verbose=True)
+    NeuralNetwork = MLPClassifier(hidden_layer_sizes=(60, 60), verbose=True, max_iter=100)
 
     # For each fold (both training and test)
     for currentFold in range(foldersToAnalyze):
 
         # If it's the not first iteration, load the neural network
-        # if not firstIteration:
+        # if currentFold != 0:
         # NeuralNetwork = joblib.load('NeuralNetwork.pkl')
 
         # Read the training set (normalized)
@@ -90,24 +89,19 @@ if __name__ == '__main__':
         # Predict the test set
         predictions = NeuralNetwork.predict(currentTestSet)
 
-        # Run throught each class and calculate the ROC curve, AUC and accuracy
+        # Get the ROC curve, AUC and accuracy
         for currentClass in range(6):
-            # Get the ROC curve with the probabilities and the activities on test set
+            # ROC curve
             fpr, tpr, thresholds = roc_curve(activitiesOnTestEncoded[:, currentClass], predictions[:, currentClass])
+
+            # Draw the ROC curve for each class
+            plt.plot(fpr, tpr, label=str(activityLabelsReversed[currentClass]))
 
             currentAUC = auc(fpr, tpr)
             print("AUC for class " + str(activityLabelsReversed[currentClass]) + ": " + str(currentAUC * 100) + "%")
 
-            # Draw the ROC curve for each class
-            plt.plot(fpr, tpr, label='Activity:' + str(activityLabelsReversed[currentClass]))
-
             currentAccuracy = accuracy_score(activitiesOnTestEncoded[:, currentClass], predictions[:, currentClass])
             print('Accuracy for ativity ' + str(activityLabelsReversed[currentClass]) + ': ' + str(currentAccuracy))
-
-            # Get the confusion matrix
-            confusionMatrix = confusion_matrix(activitiesOnTestEncoded[:, currentClass], predictions[:, currentClass])
-            print('Confusion matrix for ativity ' + str(activityLabelsReversed[currentClass]) + ':')
-            print(confusionMatrix)
 
         # Save the ROC curve
         plt.xlabel('False Positive Rate')
@@ -124,6 +118,20 @@ if __name__ == '__main__':
         plt.savefig('LearningCurve' + str(currentFold) + '.png')
         plt.close()
 
+        # Get the confusion matrix
+        for currentClass in range(6):
+            # Confusion matrix
+            confusionMatrix = confusion_matrix(activitiesOnTestEncoded[:, currentClass], predictions[:, currentClass])
+            plt.imshow(confusionMatrix, interpolation='nearest', cmap=plt.cm.Blues)
+
+        # Save the confusion matrix
+        plt.colorbar()
+        plt.title('Confusion Matrix')
+        plt.xlabel('Predicted')
+        plt.ylabel('True')
+        plt.savefig('ConfusionMatrix' + str(currentFold) + '.png')
+        plt.close()
+
         # Calculate the final Score
         finalScore = roc_auc_score(activitiesOnTestEncoded, predictions)
         print("Final Score: " + str(finalScore * 100) + "%")
@@ -133,9 +141,6 @@ if __name__ == '__main__':
 
         # Save the neural network model
         # joblib.dump(NeuralNetwork, 'neural_network.pkl')
-
-        # If it's the first iteration (first fold)
-        firstIteration = False
 
     # Calculate the average final score of the neural network and his standard deviation
     # averageFinalScore = sum(averageFinalScores) / len(averageFinalScores)
