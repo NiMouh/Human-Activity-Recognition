@@ -40,15 +40,16 @@ if __name__ == '__main__':
 
     # PART 2 - Read the instances from the csv file and create the folds using the K-Fold Cross Validation
     # instances = read_instance('instances.csv')
-    # numberOfFolds = 10
-    # create_k_fold_validation(numberOfFolds)
+    numberOfFolds = 10
+    create_k_fold_validation(numberOfFolds)
+
 
     # PART 3 - Read the folds from the csv files and create the neural network
     foldersToAnalyze = 1
     averageFinalScores = []
 
     # Create the MLP Classifier
-    NeuralNetwork = MLPClassifier(hidden_layer_sizes=(60, 60), verbose=True, max_iter=100)
+    NeuralNetwork = MLPClassifier(hidden_layer_sizes=(5, 5), verbose=True, max_iter=100)
 
     # For each fold (both training and test)
     for currentFold in range(foldersToAnalyze):
@@ -63,6 +64,9 @@ if __name__ == '__main__':
         # Read the test set (normalized)
         currentTestSet = read_instance('fold_test_' + str(currentFold) + '.csv')
 
+        # Read the validation set (normalized)
+        currentValidationSet = read_instance('fold_validation_' + str(currentFold) + '.csv')
+
         # Get the activities and user ID'S from the training set (last 2 columns of the bidimensional list)
         activitiesOnTraining = [instance[-1] for instance in currentTrainingSet]
         # usersOnTraining = [instance[-2] for instance in currentTrainingSet]
@@ -71,9 +75,14 @@ if __name__ == '__main__':
         activitiesOnTest = [instance[-1] for instance in currentTestSet]
         # usersOnTest = [instance[-2] for instance in currentTestSet]
 
-        # Delete the activities and ID's from the training and test set (last 2 columns of the bidimensional list)
+        # Get the activities and user ID's from the validation set (last 2 columns of the bidimensional list)
+        activitiesOnValidation = [instance[-1] for instance in currentValidationSet]
+        # usersOnValidation = [instance[-2] for instance in currentValidationSet]
+
+        # Delete the activities and ID's from the training, test set and validation (last 2 columns)
         currentTrainingSet = [instance[:-2] for instance in currentTrainingSet]
         currentTestSet = [instance[:-2] for instance in currentTestSet]
+        currentValidationSet = [instance[:-2] for instance in currentValidationSet]
 
         # Declaration of the variable that represents the encoded version of the activities and user ID's on training set
         activitiesOnTrainingEncoded = oneHotEncoding(activitiesOnTraining)
@@ -83,11 +92,24 @@ if __name__ == '__main__':
         activitiesOnTestEncoded = oneHotEncoding(activitiesOnTest)
         # usersOnTestEncoded = oneHotEncoding(usersOnTest)
 
+        # Declaration of the variable that represents the encoded version of the activities and user ID's on validation set
+        activitiesOnValidationEncoded = oneHotEncoding(activitiesOnValidation)
+        # usersOnValidationEncoded = oneHotEncoding(usersOnValidation)
+
         # Train the MLP Classifier
         NeuralNetwork.fit(currentTrainingSet, activitiesOnTrainingEncoded)  # , usersOnTrainingEncoded
 
+        # Save the neural network loss curve on a variable
+        trainLossCurve = NeuralNetwork.loss_curve_
+
         # Predict the test set
         predictions = NeuralNetwork.predict(currentTestSet)
+
+        # Do the parcial fit
+        NeuralNetwork.partial_fit(currentValidationSet, currentValidationSet)  # , usersOnValidationEncoded
+
+        # Save the neural network loss curve on a variable
+        testLossCurve = NeuralNetwork.loss_curve_
 
         # Get the ROC curve, AUC and accuracy
         for currentClass in range(6):
@@ -110,11 +132,12 @@ if __name__ == '__main__':
         plt.savefig('ROC' + str(currentFold) + '.png')
         plt.close()
 
-        # Save the learning curve
-        plt.plot(NeuralNetwork.loss_curve_)
+        # Save the train and test loss curve
+        plt.plot(trainLossCurve, label='Train Loss')
+        plt.plot(testLossCurve, label='Test Loss')
         plt.xlabel('Time/Experience')
         plt.ylabel('Improvement/Learning')
-        plt.legend(('Loss Curve',), loc='upper right')
+        plt.legend(('Train','Test'), loc='upper right')
         plt.savefig('LearningCurve' + str(currentFold) + '.png')
         plt.close()
 

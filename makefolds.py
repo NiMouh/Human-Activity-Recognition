@@ -43,32 +43,43 @@ def create_k_fold_validation(k):
     for indexFold in range(k):
         foldsCopy = folds.copy()
 
-        # Declaration of the variable that will save the current test set and the training set
-        testSet = foldsCopy[indexFold]
+        # Declaration of the variable that will get the indexes (both validation and test set)
+        validationSetindexes, testSetindexes = getFoldIndexes(k, indexFold)
+
+        # Declaration of the variable that will save the current test set and the training set (2 teste 1 validation 7 treino)
+        testSet = []
         trainingSet = []
+        validationSet = []
 
         # For each fold, except the test set fold, concatenate the instances to the training set
         for j in range(k):
             # If the index is the same as the test set, do nothing
             if j == indexFold:
+                validationSet.extend(foldsCopy[j])
                 continue
-
-            for instance in foldsCopy[j]:
-                trainingSet.append(instance)
+            # If the index is the same as one of the test set indexes, concatenate the instances to the test set
+            if j in testSetindexes:
+                testSet.extend(foldsCopy[j])
+                continue
+            # Else, concatenate the instances to the training set
+            else:
+                trainingSet.extend(foldsCopy[j])
 
         # Declaration of the variable that will save the min and max values of the training set
         minValues, maxValues = getMinMax(trainingSet)
 
         # Normalize the training set and the test set
-        trainingSet, testSet = normalizeData(trainingSet, testSet, minValues, maxValues)
+        trainingSet, testSet, validationSet = normalizeData(trainingSet, testSet, validationSet, minValues, maxValues)
 
-        # Shuffle the training set and the test set
+        # Shuffle the training set, the test set and the validation set
         random.shuffle(trainingSet)
         random.shuffle(testSet)
+        random.shuffle(validationSet)
 
-        # Write the training and test set in a csv file
+        # Write the training, test set and validation set in a csv file
         write_csv(trainingSet, 'fold_train_' + str(indexFold) + '.csv')
         write_csv(testSet, 'fold_test_' + str(indexFold) + '.csv')
+        write_csv(validationSet, 'fold_validation_' + str(indexFold) + '.csv')
 
 
 # Function that will give the ID's of the instances that will enter on the fold
@@ -121,7 +132,7 @@ def getMinMax(trainingSet):
 
 # Function that will normalize the data
 # It will receive the training set, test set and min and max values, and will return the normalized training set and test set
-def normalizeData(trainingSet, testSet, minValues, maxValues):
+def normalizeData(trainingSet, testSet, validationSet, minValues, maxValues):
     # Normalize the training set
     for instance in trainingSet:
         for index in range(0, len(instance) - 2, 3):
@@ -153,4 +164,37 @@ def normalizeData(trainingSet, testSet, minValues, maxValues):
             instance[index + 1] = (float(instance[index + 1]) - minValues[1]) / (maxValues[1] - minValues[1])
             instance[index + 2] = (float(instance[index + 2]) - minValues[2]) / (maxValues[2] - minValues[2])
 
-    return trainingSet, testSet
+    # Normalize the validation set
+    for instance in validationSet:
+        for index in range(0, len(instance) - 2, 3):
+            # If max and min are the same, the value will be removed
+            if maxValues[0] - minValues[0] == 0 or maxValues[1] - minValues[1] == 0 or maxValues[2] - \
+                    minValues[2] == 0:
+                instance.pop(index)
+                instance.pop(index + 1)
+                instance.pop(index + 2)
+                continue
+
+            # Normalize all the axis
+            instance[index] = (float(instance[index]) - minValues[0]) / (maxValues[0] - minValues[0])
+            instance[index + 1] = (float(instance[index + 1]) - minValues[1]) / (maxValues[1] - minValues[1])
+            instance[index + 2] = (float(instance[index + 2]) - minValues[2]) / (maxValues[2] - minValues[2])
+
+    return trainingSet, testSet, validationSet
+
+
+# Function that receives the number of folds and makes a list from 0 to the number of folds - 1, and the current index
+# And it will return 2 lists, one with size 1 that will be for the validation set (current index)
+# one with size 2 that will be for the test set (next 2 indexes, but if the current index + 2 is bigger than the number of folds, it will be the first 2 indexes)
+def getFoldIndexes(k, indexFold):
+    indexes = []
+    # Generate all the sequences of indexes with size 3 of the number of folds
+    for i in range(k):
+        indexes.append([i, (i + 1) % k, (i + 2) % k])
+
+    # Select the validation set
+    validationSet = indexes[indexFold][0]
+    # Select the test set
+    testSet = indexes[indexFold][1:]
+
+    return validationSet, testSet
