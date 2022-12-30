@@ -12,6 +12,9 @@ from sklearn.metrics import roc_curve, auc, roc_auc_score, accuracy_score, confu
 # Import for the plots
 import matplotlib.pyplot as plt
 
+# Dictionary of the activity labels (reversed)
+activityLabelsReversed = {y: x for x, y in activityLabels.items()}
+
 
 # Function that receives a list and returns the One Hot Encoding of the list
 def oneHotEncoding(item):
@@ -89,20 +92,22 @@ if __name__ == '__main__':
 
         # Run throught each class and calculate the ROC curve, AUC and accuracy
         for currentClass in range(6):
-            # Get the probabilities of the current class
-            probabilities = [prediction[currentClass] for prediction in predictions]
-
             # Get the ROC curve with the probabilities and the activities on test set
-            fpr, tpr, thresholds = roc_curve(activitiesOnTestEncoded[:, currentClass], probabilities)
+            fpr, tpr, thresholds = roc_curve(activitiesOnTestEncoded[:, currentClass], predictions[:, currentClass])
 
             currentAUC = auc(fpr, tpr)
-            print("AUC for class " + str(currentClass) + ": " + str(currentAUC * 100) + "%")
+            print("AUC for class " + str(activityLabelsReversed[currentClass]) + ": " + str(currentAUC * 100) + "%")
 
             # Draw the ROC curve for each class
-            plt.plot(fpr, tpr, label='ROC curve (area = %0.2f)' % currentAUC)
+            plt.plot(fpr, tpr, label='Activity:' + str(activityLabelsReversed[currentClass]))
 
-            currentAccuracy = accuracy_score(activitiesOnTestEncoded[:, currentClass], probabilities)
-            print('Accuracy for class ' + str(currentClass) + ': ' + str(currentAccuracy))
+            currentAccuracy = accuracy_score(activitiesOnTestEncoded[:, currentClass], predictions[:, currentClass])
+            print('Accuracy for ativity ' + str(activityLabelsReversed[currentClass]) + ': ' + str(currentAccuracy))
+
+            # Get the confusion matrix
+            confusionMatrix = confusion_matrix(activitiesOnTestEncoded[:, currentClass], predictions[:, currentClass])
+            print('Confusion matrix for ativity ' + str(activityLabelsReversed[currentClass]) + ':')
+            print(confusionMatrix)
 
         # Save the ROC curve
         plt.xlabel('False Positive Rate')
@@ -118,11 +123,6 @@ if __name__ == '__main__':
         plt.legend(('Loss Curve',), loc='upper right')
         plt.savefig('LearningCurve' + str(currentFold) + '.png')
         plt.close()
-
-        # Make the confusion matrix
-        confusionMatrix = confusion_matrix(activitiesOnTestEncoded, predictions)
-        print("Confusion Matrix:")
-        print(confusionMatrix)
 
         # Calculate the final Score
         finalScore = roc_auc_score(activitiesOnTestEncoded, predictions)

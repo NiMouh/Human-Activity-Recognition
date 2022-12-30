@@ -8,11 +8,11 @@ def read_instance(fileName):
     # Open the file
     file = open(fileName, 'r')
 
-    # Declaration of the variable that will store the data
-    rawData = []
-
     # Read line by line
     reader = csv.reader(file)
+
+    # Declaration of the variable that will store the data
+    rawData = []
 
     # For every line in the file, if the data is not empty append it to the list
     for data in reader:
@@ -40,19 +40,11 @@ def read_csv(fileName):
     # Open the file
     file = open(fileName, 'r')
 
-    # Declaration of the variable that will store the data
-    rawData = []
-
     # Read line by line
     reader = csv.reader(file)
 
-    # For every line in the file, if the data is not empty append it to the list
-    for data in reader:
-        if not data:
-            continue
-
-        # Append the row to the list
-        rawData.append(data)
+    # Declaration of the variable that will store the data (if the data is not empty)
+    rawData = [data for data in reader if data]
 
     # Close the file
     file.close()
