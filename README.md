@@ -77,6 +77,29 @@ validação~~. O conjunto de treino é composto por todas as instâncias exceto 
 composto
 pelas instâncias do fold atual. Este processo é repetido até que não existam mais folds.
 
+### Separação do conjunto de treino, teste e validação
+
+A separação dos folds em conjuntos de treino, teste e validação é uma técnica comum em aprendizagem de máquina para
+avaliar o desempenho de um modelo e evitar o overfitting (quando o modelo é ótimo em prever os dados de treino,
+mas tem um desempenho fraco em dados novos).
+
+O processo de separação dos folds em conjuntos de treino, teste e validação é feito da seguinte forma:
+
+- Usar um dos k folds como conjunto de validação, os dois seguintes como conjunto de teste e os outros k-3 folds como
+  conjunto de treino.
+- Repetir o processo k vezes, cada vez usando um fold diferente como conjunto de validação.
+
+Cada conjunto um dos conjuntos tem a seguinte função:
+
+- **Conjunto de treino**: usado para treinar o modelo. Ele é usado para apredender padrões nos dados e ajustar os
+  parâmetros do modelo.
+- **Conjunto de teste**: usado para avaliar o modelo. Ele é usado para avaliar o desempenho do modelo em dados que
+  ele ainda não viu.
+- **Conjunto de validação**: usado para ajustar os parâmetros do modelo. Ele é usado para ajustar os parâmetros do
+  modelo, como o número de épocas de treino, a taxa de aprendizagem, etc.
+
+(*Colocar imagem de comparação entre overfiting, underfiting, good fiting*)
+
 ## Passe 3: Normalização dos dados
 
 ### Introdução
@@ -152,32 +175,53 @@ Ao treinar e avaliar um modelo de rede neural, é importante medir o desempenho 
 realizar a tarefa de maneira eficiente. Para isso, é necessário coletar e analisar dados estatísticos sobre o desempenho
 do modelo.
 
-Existem várias métricas de desempenho frequentemente utilizadas em redes neurais, como precisão do modelo, curva ROC, AUC (
-Area Under the Curve), matriz confusão e a pontuação final da rede e o correspondente desvio padrão. Cada uma dessas
-métricas fornece uma visão diferente sobre o desempenho do modelo e é importante entender como elas se relacionam para
-ter uma visão completa do desempenho do modelo.
+Existem várias métricas de desempenho frequentemente utilizadas em redes neurais, como precisão do modelo, curva ROC,
+AUC (Area Under the Curve), matriz confusão e a pontuação final da rede e o correspondente desvio padrão. Cada uma
+dessas métricas fornece uma visão diferente sobre o desempenho do modelo e é importante entender como elas se relacionam
+para ter uma visão completa do desempenho do modelo.
 
 ### Explicação das Métricas
 
-*(TER IMAGENS E TEXTO RANDOM)*
-
 #### Precisão do Modelo (Model Accuracy)
+
+A precisão do modelo é uma métrica de avaliação que mede a porcentagem de previsões corretas do modelo em relação ao
+total de previsões feitas.
 
 *(TER IMAGENS E TEXTO RANDOM)*
 
 #### Curva ROC
 
+A curva ROC é uma métrica de avaliação usada para comparar a capacidade de classificação de dois ou mais modelos em
+problemas de classificação binária. Ela é plotada usando o número de verdadeiros positivos e o número de falsos
+positivos em função da taxa de verdadeiros positivos e da taxa de falsos positivos.
+
 *(TER IMAGENS E TEXTO RANDOM)*
 
 #### AUC (Area Under the Curve)
+
+A AUC é uma métrica de avaliação que mede a capacidade de classificação de um modelo em problemas
+de classificação binária. Ela é calculada pela área sob a curva ROC.
+
+Quanto maior a AUC, melhor é o desempenho do modelo (sendo 1,0 o melhor valor possível e 0,5 (um) desempenho aleatório).
 
 *(TER IMAGENS E TEXTO RANDOM)*
 
 #### Matriz Confusão
 
+A matriz de confusão é uma métrica de avaliação em aprendizagem de máquina que mostra como o modelo faz
+previsões em relação às classes verdadeiras. Ela é composta por quatro elementos: verdadeiros positivos (TP), falsos
+positivos (FP), falsos negativos (FN) e verdadeiros negativos (TN).
+
+A matriz de confusão é útil porque permite avaliar o desempenho do modelo em cada classe individualmente e fornece
+informações sobre os erros cometidos pelo modelo.
+
 *(TER IMAGENS E TEXTO RANDOM)*
 
 #### Pontuação Final da Rede e Desvio Padrão
+
+O cálculo da pontuação final da rede e do desvio padrão é feito com o propósito de obter uma estimativa mais precisa do
+desempenho do modelo. Isso é especialmente útil quando o conjunto de dados é dividido em folds (partes) para avaliar o
+desempenho do modelo e ajustar os hiperparâmetros.
 
 *(TER IMAGENS E TEXTO RANDOM)*
 

@@ -56,11 +56,9 @@ def create_k_fold_validation(k):
             # If the index is the same as the test set, do nothing
             if j == indexFold:
                 validationSet.extend(foldsCopy[j])
-                continue
             # If the index is the same as one of the test set indexes, concatenate the instances to the test set
-            if j in testSetindexes:
+            elif j in testSetindexes:
                 testSet.extend(foldsCopy[j])
-                continue
             # Else, concatenate the instances to the training set
             else:
                 trainingSet.extend(foldsCopy[j])
@@ -187,10 +185,8 @@ def normalizeData(trainingSet, testSet, validationSet, minValues, maxValues):
 # And it will return 2 lists, one with size 1 that will be for the validation set (current index)
 # one with size 2 that will be for the test set (next 2 indexes, but if the current index + 2 is bigger than the number of folds, it will be the first 2 indexes)
 def getFoldIndexes(k, indexFold):
-    indexes = []
     # Generate all the sequences of indexes with size 3 of the number of folds
-    for i in range(k):
-        indexes.append([i, (i + 1) % k, (i + 2) % k])
+    indexes = [[index, (index + 1) % k, (index + 2) % k] for index in range(k)]
 
     # Select the validation set
     validationSet = indexes[indexFold][0]
