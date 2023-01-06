@@ -1,9 +1,14 @@
 # TP2 de Inteligência Artificial: Reconhecimento de atividades humanas
 
 # Agradecimentos
-Gostaria de começar agradecendo ao professor Doutor Hugo Proença pelo acompanhamento e orientação nas aulas práticas de aprendizado de máquina. A sua experiência e conhecimento foram fundamentais para compreender os conceitos e técnicas de rede neural e aplicá-los de forma eficiente.
 
-Também gostaria de agradecer aos meus colegas João Paixão e Bernardo Claro pela ajuda na testagem dos hiperparâmetros e quantidade de neurônios. A sua colaboração foi fundamental para encontrar os melhores valores e otimizar o desempenho da rede neural.
+Gostaria de começar agradecendo ao professor Doutor Hugo Proença pelo acompanhamento e orientação nas aulas práticas de
+aprendizado de máquina. A sua experiência e conhecimento foram fundamentais para compreender os conceitos e técnicas de
+rede neural e aplicá-los de forma eficiente.
+
+Também gostaria de agradecer aos meus colegas, João Paixão e Bernardo Claro pela ajuda na testagem dos hiperparâmetros e
+quantidade de neurónios. A sua colaboração foi fundamental para encontrar os melhores valores e otimizar o desempenho da
+rede neural.
 
 ## Passo 1: Criação das instâncias
 

@@ -41,7 +41,6 @@ def create_k_fold_validation(k):
 
     # For each iteration, create 'k' training and test sets (every fold will be a test set once)
     for indexFold in range(k):
-        foldsCopy = folds.copy()
 
         # Declaration of the variable that will get the indexes (both validation and test set)
         validationSetindexes, testSetindexes = getFoldIndexes(k, indexFold)
@@ -55,13 +54,13 @@ def create_k_fold_validation(k):
         for j in range(k):
             # If the index is the same as the test set, do nothing
             if j == indexFold:
-                validationSet.extend(foldsCopy[j])
+                validationSet.extend(folds[j])
             # If the index is the same as one of the test set indexes, concatenate the instances to the test set
             elif j in testSetindexes:
-                testSet.extend(foldsCopy[j])
+                testSet.extend(folds[j])
             # Else, concatenate the instances to the training set
             else:
-                trainingSet.extend(foldsCopy[j])
+                trainingSet.extend(folds[j])
 
         # Declaration of the variable that will save the min and max values of the training set
         minValues, maxValues = getMinMax(trainingSet)

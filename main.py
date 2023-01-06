@@ -9,8 +9,9 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from sklearn.metrics import roc_curve, auc, roc_auc_score, accuracy_score, confusion_matrix
 
-# Import for the graphs
+# Import for the graphs and stats
 import matplotlib.pyplot as plt
+import statistics
 
 # Dictionary of the activity labels (reversed)
 activityLabelsReversed = {y: x for x, y in activityLabels.items()}
@@ -42,7 +43,6 @@ if __name__ == '__main__':
     # instances = read_instance('instances.csv')
     numberOfFolds = 10
     create_k_fold_validation(numberOfFolds)
-
 
     # PART 3 - Read the folds from the csv files and create the neural network
     foldersToAnalyze = 1
@@ -137,7 +137,7 @@ if __name__ == '__main__':
         plt.plot(testLossCurve, label='Test Loss')
         plt.xlabel('Time/Experience')
         plt.ylabel('Improvement/Learning')
-        plt.legend(('Train','Test'), loc='upper right')
+        plt.legend(('Train', 'Test'), loc='upper right')
         plt.savefig('LearningCurve' + str(currentFold) + '.png')
         plt.close()
 
@@ -166,8 +166,8 @@ if __name__ == '__main__':
         # joblib.dump(NeuralNetwork, 'neural_network.pkl')
 
     # Calculate the average final score of the neural network and his standard deviation
-    # averageFinalScore = sum(averageFinalScores) / len(averageFinalScores)
-    # deviationFinalScore = statistics.stdev(averageFinalScores)
+    averageFinalScore = sum(averageFinalScores) / len(averageFinalScores)
+    deviationFinalScore = statistics.stdev(averageFinalScores)
 
     # Calculate the final answer
-    # print("Final Answer: " + str(averageFinalScore * 100) + "% +/- " + str(deviationFinalScore * 100) + "%")
+    print("Final Answer: %0.2f +/- %0.2f" ,averageFinalScore, deviationFinalScore)
