@@ -2,6 +2,9 @@
 import math, random
 from managefiles import read_instance, write_csv
 
+# Declaration of the variable that represents the number of ID's
+numberOfIDs = 36
+
 
 # Function that makes K fold cross validation
 # It will create 'k' folds, normalize them and write them to a csv file
@@ -14,7 +17,7 @@ def create_k_fold_validation(k):
     instances = read_instance('instances.csv')
 
     # Declaration of the ID's not taken (36 ID's initially)
-    idsNotTaken = [i for i in range(1, 37)]
+    idsNotTaken = [i for i in range(1, numberOfIDs + 1)]
 
     # Declaration of the variable that represents the number of instances per fold
     idsPerFold = int(len(idsNotTaken) / k)
@@ -93,6 +96,21 @@ def getFoldIDs(ids, idsPerFold):
 
     # Return the list of ID's that will enter on the fold and the new list of ID's
     return foldIDs, ids
+
+
+# Function that receives the number of folds and makes a list from 0 to the number of folds - 1, and the current index
+# And it will return 2 lists, one with size 1 that will be for the validation set (current index)
+# one with size 2 that will be for the test set (next 2 indexes, but if the current index + 2 is bigger than the number of folds, it will be the first 2 indexes)
+def getFoldIndexes(k, indexFold):
+    # Generate all the sequences of indexes with size 3 of the number of folds
+    indexes = [[index, (index + 1) % k, (index + 2) % k] for index in range(k)]
+
+    # Select the validation set
+    validationSet = indexes[indexFold][0]
+    # Select the test set
+    testSet = indexes[indexFold][1:]
+
+    return validationSet, testSet
 
 
 # Function that will find the min and max values of the training set
@@ -178,18 +196,3 @@ def normalizeData(trainingSet, testSet, validationSet, minValues, maxValues):
             instance[index + 2] = (float(instance[index + 2]) - minValues[2]) / (maxValues[2] - minValues[2])
 
     return trainingSet, testSet, validationSet
-
-
-# Function that receives the number of folds and makes a list from 0 to the number of folds - 1, and the current index
-# And it will return 2 lists, one with size 1 that will be for the validation set (current index)
-# one with size 2 that will be for the test set (next 2 indexes, but if the current index + 2 is bigger than the number of folds, it will be the first 2 indexes)
-def getFoldIndexes(k, indexFold):
-    # Generate all the sequences of indexes with size 3 of the number of folds
-    indexes = [[index, (index + 1) % k, (index + 2) % k] for index in range(k)]
-
-    # Select the validation set
-    validationSet = indexes[indexFold][0]
-    # Select the test set
-    testSet = indexes[indexFold][1:]
-
-    return validationSet, testSet
