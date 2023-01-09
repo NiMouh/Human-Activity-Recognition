@@ -50,7 +50,7 @@ if __name__ == '__main__':
     # create_k_fold_validation(numberOfFolds)
 
     # PART 3 - Read the folds from the csv files and create the neural network
-    foldersToAnalyze = 2
+    foldersToAnalyze = 10
     averageFinalScores = []
 
     # Declaration of the list with all AUC scores and the correpondent fpr and tpr per activity and per fold [auc_score, fpr, tpr]
@@ -60,7 +60,7 @@ if __name__ == '__main__':
     for currentFold in range(foldersToAnalyze):
 
         # Create the MLP Classifier
-        NeuralNetwork = MLPClassifier(hidden_layer_sizes=(5, 5), verbose=True, max_iter=100)
+        NeuralNetwork = MLPClassifier(hidden_layer_sizes=(120, 120), verbose=True, max_iter=1500)
 
         # If it's the not first iteration, load the neural network
         # if currentFold != 0:
