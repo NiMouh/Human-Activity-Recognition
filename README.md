@@ -1,4 +1,4 @@
-# TP2 de Inteligência Artificial: Reconhecimento de atividades humanas
+# Reconhecimento de Atividade Humana
 
 # Agradecimentos
 
